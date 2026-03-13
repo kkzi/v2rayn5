@@ -461,11 +461,6 @@ namespace v2rayN.Forms
             }
         }
 
-        private void lvServers_SelectedIndexChanged(object sender, EventArgs e)
-        {
-        }
-
-
         private void lvServers_ColumnClick(object sender, ColumnClickEventArgs e)
         {
             if (e.Column < 0)
@@ -1385,9 +1380,6 @@ namespace v2rayN.Forms
                 item.Selected = true;
             }
         }
-        private void menuMoveToGroup_Click(object sender, EventArgs e)
-        {
-        }
         #endregion
 
         #region 系统代理相关
@@ -1725,24 +1717,9 @@ namespace v2rayN.Forms
                     var rect = e.TextRectangle;
                     e.TextRectangle = new Rectangle(rect.X + _extraGap, rect.Y, rect.Width, rect.Height);
                 }
-                base.OnRenderItemText(e);
-            }
-
-            protected override void OnRenderButtonBackground(ToolStripItemRenderEventArgs e)
-            {
-                base.OnRenderButtonBackground(e);
-            }
-
-            protected override void OnRenderDropDownButtonBackground(ToolStripItemRenderEventArgs e)
-            {
-                base.OnRenderDropDownButtonBackground(e);
-            }
-
-            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
-            {
-                base.OnRenderToolStripBorder(e);
-            }
+            base.OnRenderItemText(e);
         }
-
     }
+
+}
 }
