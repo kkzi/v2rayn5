@@ -878,7 +878,6 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.VisibleChanged += new System.EventHandler(this.MainForm_VisibleChanged);
-            this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.scServers.Panel1.ResumeLayout(false);
             this.scServers.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.scServers)).EndInit();

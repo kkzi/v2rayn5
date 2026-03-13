@@ -51,7 +51,6 @@ namespace v2rayN.Forms
                         return;
                     }
                 }
-                //this.txtMsgBox.AppendText(text);
                 ShowMsg(text);
             }
         }
