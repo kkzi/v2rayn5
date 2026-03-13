@@ -283,11 +283,6 @@ namespace v2rayN.Forms
             txtMsgBox.Visible = isVisible;
         }
 
-        public void SetLogVisible(bool isVisible)
-        {
-            gbMsgTitle.Visible = isVisible;
-        }
-
 
         public event EventHandler<RoutingSelectedEventArgs> RoutingSelected;
         public event EventHandler ToggleLogRequested;

@@ -135,7 +135,6 @@ namespace v2rayN.Forms
             logPanelSplitterDistance = scBig.SplitterDistance;
             _isLogHidden = false;
             mainMsgControl.SetLogToggleState(true);
-            mainMsgControl.SetLogTextVisible(true);
         }
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
