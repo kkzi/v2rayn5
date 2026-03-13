@@ -199,18 +199,6 @@ namespace v2rayN.Forms
         {
             scServers.Panel2Collapsed = true;
 
-            //if (!config.uiItem.mainLocation.IsEmpty)
-            //{
-            //    if (config.uiItem.mainLocation.X >= SystemInformation.WorkingArea.Width
-            //        || config.uiItem.mainLocation.Y >= SystemInformation.WorkingArea.Height)
-            //    {
-            //        Location = new Point(0, 0);
-            //    }
-            //    else
-            //    {
-            //        Location = config.uiItem.mainLocation;
-            //    }
-            //}
             if (!config.uiItem.mainSize.IsEmpty)
             {
                 Width = config.uiItem.mainSize.Width;
@@ -824,27 +812,11 @@ namespace v2rayN.Forms
 
         private void menuRealPingServer_Click(object sender, EventArgs e)
         {
-            //if (!config.sysAgentEnabled)
-            //{
-            //    UI.Show(ResUI.NeedHttpGlobalProxy"));
-            //    return;
-            //}
-
-            //UI.Show(ResUI.SpeedServerTips"));
-
             Speedtest(ESpeedActionType.Realping);
         }
 
         private void menuSpeedServer_Click(object sender, EventArgs e)
         {
-            //if (!config.sysAgentEnabled)
-            //{
-            //    UI.Show(ResUI.NeedHttpGlobalProxy"));
-            //    return;
-            //}
-
-            //UI.Show(ResUI.SpeedServerTips"));
-
             Speedtest(ESpeedActionType.Speedtest);
         }
         private void Speedtest(ESpeedActionType actionType)
@@ -912,7 +884,6 @@ namespace v2rayN.Forms
             {
                 Utils.SetClipboardData(sb.ToString());
                 AppendText(false, ResUI.BatchExportURLSuccessfully);
-                //UI.Show(ResUI.BatchExportURLSuccessfully"));
             }
         }
 
@@ -964,9 +935,6 @@ namespace v2rayN.Forms
             var fm = new GlobalHotkeySettingForm();
             if (fm.ShowDialog() == DialogResult.OK)
             {
-                //RefreshRoutingsMenu();
-                //RefreshServers();
-                //_ = LoadV2ray();
             }
 
         }
@@ -1002,7 +970,6 @@ namespace v2rayN.Forms
             }
             if (ConfigHandler.SetDefaultServer(ref config, lstVmess[index]) == 0)
             {
-                //RefreshServers();
                 for (int k = 0; k < lstVmess.Count; k++)
                 {
                     if (config.IsActiveNode(lstVmess[k]))
@@ -1210,7 +1177,6 @@ namespace v2rayN.Forms
             }
             Activate();
             ShowInTaskbar = true;
-            //this.notifyIcon1.Visible = false;
             mainMsgControl.ScrollToCaret();
 
             int index = GetLvSelectedIndex(false);
@@ -1225,15 +1191,11 @@ namespace v2rayN.Forms
 
         private void HideForm()
         {
-            //this.WindowState = FormWindowState.Minimized;
             Hide();
-            //this.notifyMain.Icon = this.Icon;
             notifyMain.Visible = true;
             ShowInTaskbar = false;
 
             SetVisibleCore(false);
-
-            //write Handle to reg
             if (IsHandleCreated)
             {
                 Utils.RegWriteValue(Global.MyRegPath, Utils.WindowHwndKey, Convert.ToString((long)Handle));
@@ -1357,9 +1319,7 @@ namespace v2rayN.Forms
             }
             if (ConfigHandler.MoveServer(ref config, ref lstVmess, index, eMove) == 0)
             {
-                //TODO: reload is not good.
                 RefreshServers();
-                //LoadV2ray();
             }
         }
         private void menuSelectAll_Click(object sender, EventArgs e)
@@ -1419,16 +1379,6 @@ namespace v2rayN.Forms
         private void tsbCheckUpdateN_Click(object sender, EventArgs e)
         {
             Process.Start(Global.UpdateUrl);
-
-            //void _updateUI(bool success, string msg)
-            //{
-            //    AppendText(false, msg);
-            //    if (success)
-            //    {
-            //        menuExit_Click(null, null);
-            //    }
-            //};
-            //(new UpdateHandle()).CheckUpdateGuiN(config, _updateUI, config.checkPreReleaseUpdate);
         }
 
         private void tsbCheckUpdateCore_Click(object sender, EventArgs e)
@@ -1579,7 +1529,6 @@ namespace v2rayN.Forms
         private void SetCurrentLanguage(string value)
         {
             Utils.RegWriteValue(Global.MyRegPath, Global.MyRegKeyLanguage, value);
-            //Application.Restart();
         }
 
         #endregion
