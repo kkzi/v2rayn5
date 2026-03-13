@@ -67,24 +67,33 @@ namespace v2rayN.Forms
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            if (ConfigHandler.LoadConfig(ref config) != 0)
+            try
             {
-                UI.ShowWarning($"Loading GUI configuration file is abnormal,please restart the application{Environment.NewLine}加载GUI配置文件异常,请重启应用");
-                Environment.Exit(0);
-                return;
+                if (ConfigHandler.LoadConfig(ref config) != 0)
+                {
+                    UI.ShowWarning($"Loading GUI configuration file is abnormal,please restart the application{Environment.NewLine}加载GUI配置文件异常,请重启应用");
+                    Utils.SaveLog("Exit: LoadConfig failed");
+                    Environment.Exit(0);
+                    return;
+                }
+
+                ConfigHandler.InitBuiltinRouting(ref config);
+                MainFormHandler.Instance.BackupGuiNConfig(config, true);
+                v2rayHandler = new V2rayHandler();
+                v2rayHandler.ProcessEvent += v2rayHandler_ProcessEvent;
+
+                if (config.enableStatistics)
+                {
+                    statistics = new StatisticsHandler(config, UpdateStatisticsHandler);
+                }
+
+                ApplyServerFilterCue();
             }
-
-            ConfigHandler.InitBuiltinRouting(ref config);
-            MainFormHandler.Instance.BackupGuiNConfig(config, true);
-            v2rayHandler = new V2rayHandler();
-            v2rayHandler.ProcessEvent += v2rayHandler_ProcessEvent;
-
-            if (config.enableStatistics)
+            catch (Exception ex)
             {
-                statistics = new StatisticsHandler(config, UpdateStatisticsHandler);
+                Utils.SaveLog("MainForm_Load Error", ex);
+                UI.ShowWarning($"Loading error: {ex.Message}");
             }
-
-            ApplyServerFilterCue();
         }
 
         private void MainForm_VisibleChanged(object sender, EventArgs e)
@@ -171,7 +180,7 @@ namespace v2rayN.Forms
         {
             try
             {
-                Utils.SaveLog("MyAppExit Begin");
+                Utils.SaveLog($"MyAppExit Begin|IsWindowsShutdown:{blWindowsShutDown}|IsLogHidden:{_isLogHidden}");
 
                 StorageUI();
                 ConfigHandler.SaveConfig(ref config);
@@ -192,7 +201,10 @@ namespace v2rayN.Forms
                 v2rayHandler.V2rayStop();
                 Utils.SaveLog("MyAppExit End");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Utils.SaveLog("MyAppExit Error", ex);
+            }
         }
 
         private void RestoreUI()

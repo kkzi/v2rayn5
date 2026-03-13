@@ -29,7 +29,7 @@ namespace v2rayN
             if (!IsDuplicateInstance())
             {
                 Logging.Setup();
-                Utils.SaveLog($"v2rayN start up | {Utils.GetVersion()} | {Utils.GetExePath()}");
+                Utils.SaveLog($"v2rayN start up | {Utils.GetVersion()} | {Utils.GetExePath()} | OS:{Environment.OSVersion}");
                 Logging.ClearLogs();
 
                 //设置语言环境
@@ -100,12 +100,23 @@ namespace v2rayN
 
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            Utils.SaveLog("Application_ThreadException", e.Exception);
+            Utils.SaveLog($"Application_ThreadException|IsTerminating:true", e.Exception);
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Utils.SaveLog("CurrentDomain_UnhandledException", (Exception)e.ExceptionObject);
+            var ex = e.ExceptionObject as Exception;
+            Utils.SaveLog($"CurrentDomain_UnhandledException|IsTerminating:{e.IsTerminating}", ex);
+            
+            if (e.IsTerminating)
+            {
+                try
+                {
+                    Utils.SaveLog($"CurrentDomain_UnhandledException|StackTrace: {ex?.StackTrace}");
+                    Utils.SaveLog($"CurrentDomain_UnhandledException|TargetSite: {ex?.TargetSite}");
+                }
+                catch { }
+            }
         }
     }
 }
