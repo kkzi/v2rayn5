@@ -22,8 +22,6 @@ namespace v2rayN.Handler
         //  <proxy-server><CR-LF>
         //  <bypass-list><CR-LF>
         //  <pac-url>
-        private static SysproxyConfig _userSettings = null;
-
         enum RET_ERRORS : int
         {
             RET_NO_ERROR = 0,
@@ -86,9 +84,6 @@ namespace v2rayN.Handler
                 else if (type == ESysProxyType.ForcedClear)
                 {
                     ResetIEProxy();
-                }
-                else if (type == ESysProxyType.Unchanged)
-                {
                 }
             }
             catch (Exception ex)
@@ -198,9 +193,8 @@ namespace v2rayN.Handler
 
                         process.WaitForExit();
                     }
-                    catch (System.ComponentModel.Win32Exception e)
+                    catch (System.ComponentModel.Win32Exception)
                     {
-
                         // log the arguments
                         throw new Exception(process.StartInfo.Arguments);
                     }
