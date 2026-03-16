@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -195,18 +195,6 @@
   <data name="btnFilderProxy.Text" xml:space="preserve">
     <value>Filter Proxy</value>
   </data>
-  <data name="&gt;&gt;btnFilderProxy.Name" xml:space="preserve">
-    <value>btnFilderProxy</value>
-  </data>
-  <data name="&gt;&gt;btnFilderProxy.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnFilderProxy.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;btnFilderProxy.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
   <data name="btnFilterDirect.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
@@ -222,18 +210,6 @@
   <data name="btnFilterDirect.Text" xml:space="preserve">
     <value>Filter Direct</value>
   </data>
-  <data name="&gt;&gt;btnFilterDirect.Name" xml:space="preserve">
-    <value>btnFilterDirect</value>
-  </data>
-  <data name="&gt;&gt;btnFilterDirect.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnFilterDirect.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;btnFilterDirect.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
   <data name="txtMsgFilter.Location" type="System.Drawing.Point, System.Drawing">
     <value>41, 20</value>
   </data>
@@ -242,18 +218,6 @@
   </data>
   <data name="txtMsgFilter.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
-  </data>
-  <data name="&gt;&gt;txtMsgFilter.Name" xml:space="preserve">
-    <value>txtMsgFilter</value>
-  </data>
-  <data name="&gt;&gt;txtMsgFilter.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;txtMsgFilter.Parent" xml:space="preserve">
-    <value>groupBox1</value>
-  </data>
-  <data name="&gt;&gt;txtMsgFilter.ZOrder" xml:space="preserve">
-    <value>2</value>
   </data>
   <data name="btnClear.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>

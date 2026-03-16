@@ -179,6 +179,12 @@
   <data name="toolStripSeparator1.Size" type="System.Drawing.Size, System.Drawing">
     <value>420, 6</value>
   </data>
+  <data name="menuServerFilter.Size" type="System.Drawing.Size, System.Drawing">
+    <value>423, 24</value>
+  </data>
+  <data name="menuServerFilter.Text" xml:space="preserve">
+    <value>Set server filter (Ctrl+F)</value>
+  </data>
   <data name="menuRemoveServer.Size" type="System.Drawing.Size, System.Drawing">
     <value>423, 24</value>
   </data>
@@ -454,33 +460,6 @@
   </data>
   <data name="&gt;&gt;txtServerFilter.ZOrder" xml:space="preserve">
     <value>1</value>
-  </data>
-  <data name="btnServerFilterClear.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Right</value>
-  </data>
-  <data name="btnServerFilterClear.Location" type="System.Drawing.Point, System.Drawing">
-    <value>1003, 0</value>
-  </data>
-  <data name="btnServerFilterClear.Size" type="System.Drawing.Size, System.Drawing">
-    <value>24, 24</value>
-  </data>
-  <data name="btnServerFilterClear.TabIndex" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
-  <data name="btnServerFilterClear.Text" xml:space="preserve">
-    <value>X</value>
-  </data>
-  <data name="&gt;&gt;btnServerFilterClear.Name" xml:space="preserve">
-    <value>btnServerFilterClear</value>
-  </data>
-  <data name="&gt;&gt;btnServerFilterClear.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;btnServerFilterClear.Parent" xml:space="preserve">
-    <value>panelGroupHeader</value>
-  </data>
-  <data name="&gt;&gt;btnServerFilterClear.ZOrder" xml:space="preserve">
-    <value>0</value>
   </data>
   <data name="&gt;&gt;scServers.Panel1.Name" xml:space="preserve">
     <value>scServers.Panel1</value>
@@ -1117,6 +1096,12 @@
   </data>
   <data name="&gt;&gt;toolStripSeparator1.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;menuServerFilter.Name" xml:space="preserve">
+    <value>menuServerFilter</value>
+  </data>
+  <data name="&gt;&gt;menuServerFilter.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;menuRemoveServer.Name" xml:space="preserve">
     <value>menuRemoveServer</value>

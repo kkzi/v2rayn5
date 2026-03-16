@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Workaround: solution restore can fail in parallel in some environments. -->
+    <RestoreBuildInParallel>false</RestoreBuildInParallel>
+    <!-- Workaround: solution build can also be flaky when projects are built in parallel. -->
+    <BuildInParallel>false</BuildInParallel>
+  </PropertyGroup>
+</Project>

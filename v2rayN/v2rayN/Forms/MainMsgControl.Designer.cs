@@ -43,6 +43,7 @@ namespace v2rayN.Forms
             this.ssMain = new System.Windows.Forms.StatusStrip();
             this.toolSslInboundInfo = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolSslBlank1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolSdbSysProxy = new System.Windows.Forms.ToolStripDropDownButton();
             this.toolSdbRoutingRule = new System.Windows.Forms.ToolStripDropDownButton();
             this.toolSslBlank2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolSslServerSpeed = new System.Windows.Forms.ToolStripStatusLabel();
@@ -126,6 +127,7 @@ namespace v2rayN.Forms
             this.ssMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolSslInboundInfo,
             this.toolSslBlank1,
+            this.toolSdbSysProxy,
             this.toolSdbRoutingRule,
             this.toolSslBlank2,
             this.toolSslServerSpeed,
@@ -144,6 +146,14 @@ namespace v2rayN.Forms
             resources.ApplyResources(this.toolSslBlank1, "toolSslBlank1");
             this.toolSslBlank1.Name = "toolSslBlank1";
             this.toolSslBlank1.Spring = true;
+            // 
+            // toolSdbSysProxy
+            // 
+            resources.ApplyResources(this.toolSdbSysProxy, "toolSdbSysProxy");
+            this.toolSdbSysProxy.AutoSize = false;
+            this.toolSdbSysProxy.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolSdbSysProxy.Name = "toolSdbSysProxy";
+            this.toolSdbSysProxy.Size = new System.Drawing.Size(160, 17);
             // 
             // toolSdbRoutingRule
             // 
@@ -208,6 +218,7 @@ namespace v2rayN.Forms
         private System.Windows.Forms.StatusStrip ssMain;
         private System.Windows.Forms.ToolStripStatusLabel toolSslInboundInfo;
         private System.Windows.Forms.ToolStripStatusLabel toolSslBlank1;
+        private System.Windows.Forms.ToolStripDropDownButton toolSdbSysProxy;
         private System.Windows.Forms.ToolStripDropDownButton toolSdbRoutingRule;
         private System.Windows.Forms.ToolStripStatusLabel toolSslBlank2;
         private System.Windows.Forms.ToolStripStatusLabel toolSslServerSpeed;

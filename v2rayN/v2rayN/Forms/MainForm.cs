@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,18 +16,13 @@ namespace v2rayN.Forms
 {
     public partial class MainForm : BaseForm
     {
-        private const int EmSetCueBanner = 0x1501;
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, string lParam);
-
         private V2rayHandler v2rayHandler;
         private List<VmessItem> lstSelecteds = new List<VmessItem>();
         private StatisticsHandler statistics;
         private List<VmessItem> lstVmess;
         private string _groupId = string.Empty;
         private string serverFilter = string.Empty;
-        private string serverFilterPending = string.Empty;
-        private Timer serverFilterTimer;
+        private bool _isLogHidden;
         private int logPanelSplitterDistance;
 
         #region Window 事件
@@ -36,11 +30,10 @@ namespace v2rayN.Forms
         public MainForm()
         {
             InitializeComponent();
+            mainMsgControl.SysProxySelected += mainMsgControl_SysProxySelected;
             mainMsgControl.RoutingSelected += MainMsgControl_RoutingSelected;
             mainMsgControl.ToggleLogRequested += MainMsgControl_ToggleLogRequested;
             KeyPreview = true;
-            serverFilterTimer = new Timer { Interval = 500 };
-            serverFilterTimer.Tick += serverFilterTimer_Tick;
 
             // 设置工具栏图标和文本间距为1px（默认约2px，额外减少1px）
             const int extraGap = -1;
@@ -67,32 +60,21 @@ namespace v2rayN.Forms
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            try
+            if (ConfigHandler.LoadConfig(ref config) != 0)
             {
-                if (ConfigHandler.LoadConfig(ref config) != 0)
-                {
-                    UI.ShowWarning($"Loading GUI configuration file is abnormal,please restart the application{Environment.NewLine}加载GUI配置文件异常,请重启应用");
-                    Utils.SaveLog("Exit: LoadConfig failed");
-                    Environment.Exit(0);
-                    return;
-                }
-
-                ConfigHandler.InitBuiltinRouting(ref config);
-                MainFormHandler.Instance.BackupGuiNConfig(config, true);
-                v2rayHandler = new V2rayHandler();
-                v2rayHandler.ProcessEvent += v2rayHandler_ProcessEvent;
-
-                if (config.enableStatistics)
-                {
-                    statistics = new StatisticsHandler(config, UpdateStatisticsHandler);
-                }
-
-                ApplyServerFilterCue();
+                UI.ShowWarning($"Loading GUI configuration file is abnormal,please restart the application{Environment.NewLine}加载GUI配置文件异常,请重启应用");
+                Environment.Exit(0);
+                return;
             }
-            catch (Exception ex)
+
+            ConfigHandler.InitBuiltinRouting(ref config);
+            MainFormHandler.Instance.BackupGuiNConfig(config, true);
+            v2rayHandler = new V2rayHandler();
+            v2rayHandler.ProcessEvent += v2rayHandler_ProcessEvent;
+
+            if (config.enableStatistics)
             {
-                Utils.SaveLog("MainForm_Load Error", ex);
-                UI.ShowWarning($"Loading error: {ex.Message}");
+                statistics = new StatisticsHandler(config, UpdateStatisticsHandler);
             }
         }
 
@@ -144,16 +126,40 @@ namespace v2rayN.Forms
             logPanelSplitterDistance = scBig.SplitterDistance;
             _isLogHidden = false;
             mainMsgControl.SetLogToggleState(true);
+            mainMsgControl.SetLogTextVisible(true);
         }
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.F)
             {
-                FocusServerFilter();
+                menuServerFilter_Click(null, null);
                 e.Handled = true;
                 e.SuppressKeyPress = true;
             }
+        }
+
+        private void MainMsgControl_ToggleLogRequested(object sender, EventArgs e)
+        {
+            ToggleLogPanel();
+        }
+
+        private void ToggleLogPanel()
+        {
+            if (_isLogHidden)
+            {
+                scBig.SplitterDistance = logPanelSplitterDistance > 0 ? logPanelSplitterDistance : 200;
+                _isLogHidden = false;
+            }
+            else
+            {
+                logPanelSplitterDistance = scBig.SplitterDistance;
+                int statusBarHeight = 22;
+                scBig.SplitterDistance = scBig.Height - statusBarHeight;
+                _isLogHidden = true;
+            }
+            mainMsgControl.SetLogToggleState(!_isLogHidden);
+            mainMsgControl.SetLogTextVisible(!_isLogHidden);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -176,11 +182,22 @@ namespace v2rayN.Forms
             }
         }
 
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            //if (this.WindowState == FormWindowState.Minimized)
+            //{
+            //    HideForm();
+            //}
+            //else
+            //{
+
+            //}
+        }
         private void MyAppExit(bool blWindowsShutDown)
         {
             try
             {
-                Utils.SaveLog($"MyAppExit Begin|IsWindowsShutdown:{blWindowsShutDown}|IsLogHidden:{_isLogHidden}");
+                Utils.SaveLog("MyAppExit Begin");
 
                 StorageUI();
                 ConfigHandler.SaveConfig(ref config);
@@ -201,16 +218,25 @@ namespace v2rayN.Forms
                 v2rayHandler.V2rayStop();
                 Utils.SaveLog("MyAppExit End");
             }
-            catch (Exception ex)
-            {
-                Utils.SaveLog("MyAppExit Error", ex);
-            }
+            catch { }
         }
 
         private void RestoreUI()
         {
             scServers.Panel2Collapsed = true;
 
+            //if (!config.uiItem.mainLocation.IsEmpty)
+            //{
+            //    if (config.uiItem.mainLocation.X >= SystemInformation.WorkingArea.Width
+            //        || config.uiItem.mainLocation.Y >= SystemInformation.WorkingArea.Height)
+            //    {
+            //        Location = new Point(0, 0);
+            //    }
+            //    else
+            //    {
+            //        Location = config.uiItem.mainLocation;
+            //    }
+            //}
             if (!config.uiItem.mainSize.IsEmpty)
             {
                 Width = config.uiItem.mainSize.Width;
@@ -261,6 +287,16 @@ namespace v2rayN.Forms
 
         #region 显示服务器 listview 和 menu
 
+        private void txtServerFilter_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                serverFilter = (txtServerFilter.Text ?? string.Empty).Trim();
+                RefreshServers();
+            }
+            catch { }
+        }
+
         /// <summary>
         /// 刷新服务器
         /// </summary>
@@ -268,7 +304,7 @@ namespace v2rayN.Forms
         {
             lstVmess = config.vmess
                 .Where(it => Utils.IsNullOrEmpty(_groupId) || it.groupId == _groupId)
-                .Where(it => Utils.IsNullOrEmpty(serverFilter) || (it.remarks ?? string.Empty).IndexOf(serverFilter, StringComparison.OrdinalIgnoreCase) >= 0)
+                .Where(it => Utils.IsNullOrEmpty(serverFilter) || (it.remarks ?? string.Empty).Contains(serverFilter))
                 .OrderBy(it => it.sort)
                 .ToList();
 
@@ -450,6 +486,11 @@ namespace v2rayN.Forms
             }
         }
 
+        private void lvServers_SelectedIndexChanged(object sender, EventArgs e)
+        {
+        }
+
+
         private void lvServers_ColumnClick(object sender, ColumnClickEventArgs e)
         {
             if (e.Column < 0)
@@ -523,43 +564,6 @@ namespace v2rayN.Forms
                 lst.Add(ts);
             }
             menuMoveToGroup.DropDownItems.AddRange(lst.ToArray());
-        }
-
-        private void txtServerFilter_TextChanged(object sender, EventArgs e)
-        {
-            serverFilterPending = txtServerFilter.Text.Trim();
-            serverFilterTimer.Stop();
-            serverFilterTimer.Start();
-        }
-
-
-        private void FocusServerFilter()
-        {
-            txtServerFilter.Focus();
-            txtServerFilter.SelectAll();
-        }
-
-        private void serverFilterTimer_Tick(object sender, EventArgs e)
-        {
-            serverFilterTimer.Stop();
-            if (serverFilter == serverFilterPending)
-            {
-                return;
-            }
-            serverFilter = serverFilterPending;
-            RefreshServers();
-        }
-
-        private void ApplyServerFilterCue()
-        {
-            try
-            {
-                _ = txtServerFilter.Handle;
-                SendMessage(txtServerFilter.Handle, EmSetCueBanner, (IntPtr)1, ResUI.ServerFilterPlaceholder);
-            }
-            catch
-            {
-            }
         }
 
         private void tabGroup_SelectedIndexChanged(object sender, EventArgs e)
@@ -721,6 +725,9 @@ namespace v2rayN.Forms
                     case Keys.T:
                         menuSpeedServer_Click(null, null);
                         break;
+                    case Keys.F:
+                        menuServerFilter_Click(null, null);
+                        break;
                     case Keys.E:
                         menuSortServerResult_Click(null, null);
                         break;
@@ -813,6 +820,18 @@ namespace v2rayN.Forms
             SetDefaultServer(index);
         }
 
+        private void menuServerFilter_Click(object sender, EventArgs e)
+        {
+            var fm = new MsgFilterSetForm();
+            fm.MsgFilter = serverFilter;
+            if (fm.ShowDialog() == DialogResult.OK)
+            {
+                serverFilter = fm.MsgFilter;
+                // gbServers removed; keep refresh only
+                RefreshServers();
+            }
+        }
+
         private void menuPingServer_Click(object sender, EventArgs e)
         {
             Speedtest(ESpeedActionType.Ping);
@@ -824,11 +843,27 @@ namespace v2rayN.Forms
 
         private void menuRealPingServer_Click(object sender, EventArgs e)
         {
+            //if (!config.sysAgentEnabled)
+            //{
+            //    UI.Show(ResUI.NeedHttpGlobalProxy"));
+            //    return;
+            //}
+
+            //UI.Show(ResUI.SpeedServerTips"));
+
             Speedtest(ESpeedActionType.Realping);
         }
 
         private void menuSpeedServer_Click(object sender, EventArgs e)
         {
+            //if (!config.sysAgentEnabled)
+            //{
+            //    UI.Show(ResUI.NeedHttpGlobalProxy"));
+            //    return;
+            //}
+
+            //UI.Show(ResUI.SpeedServerTips"));
+
             Speedtest(ESpeedActionType.Speedtest);
         }
         private void Speedtest(ESpeedActionType actionType)
@@ -896,6 +931,7 @@ namespace v2rayN.Forms
             {
                 Utils.SetClipboardData(sb.ToString());
                 AppendText(false, ResUI.BatchExportURLSuccessfully);
+                //UI.Show(ResUI.BatchExportURLSuccessfully"));
             }
         }
 
@@ -947,6 +983,9 @@ namespace v2rayN.Forms
             var fm = new GlobalHotkeySettingForm();
             if (fm.ShowDialog() == DialogResult.OK)
             {
+                //RefreshRoutingsMenu();
+                //RefreshServers();
+                //_ = LoadV2ray();
             }
 
         }
@@ -982,6 +1021,7 @@ namespace v2rayN.Forms
             }
             if (ConfigHandler.SetDefaultServer(ref config, lstVmess[index]) == 0)
             {
+                //RefreshServers();
                 for (int k = 0; k < lstVmess.Count; k++)
                 {
                     if (config.IsActiveNode(lstVmess[k]))
@@ -1189,6 +1229,7 @@ namespace v2rayN.Forms
             }
             Activate();
             ShowInTaskbar = true;
+            //this.notifyIcon1.Visible = false;
             mainMsgControl.ScrollToCaret();
 
             int index = GetLvSelectedIndex(false);
@@ -1203,11 +1244,15 @@ namespace v2rayN.Forms
 
         private void HideForm()
         {
+            //this.WindowState = FormWindowState.Minimized;
             Hide();
+            //this.notifyMain.Icon = this.Icon;
             notifyMain.Visible = true;
             ShowInTaskbar = false;
 
             SetVisibleCore(false);
+
+            //write Handle to reg
             if (IsHandleCreated)
             {
                 Utils.RegWriteValue(Global.MyRegPath, Utils.WindowHwndKey, Convert.ToString((long)Handle));
@@ -1331,7 +1376,9 @@ namespace v2rayN.Forms
             }
             if (ConfigHandler.MoveServer(ref config, ref lstVmess, index, eMove) == 0)
             {
+                //TODO: reload is not good.
                 RefreshServers();
+                //LoadV2ray();
             }
         }
         private void menuSelectAll_Click(object sender, EventArgs e)
@@ -1340,6 +1387,9 @@ namespace v2rayN.Forms
             {
                 item.Selected = true;
             }
+        }
+        private void menuMoveToGroup_Click(object sender, EventArgs e)
+        {
         }
         #endregion
 
@@ -1357,6 +1407,10 @@ namespace v2rayN.Forms
         {
             SetListenerType(ESysProxyType.Unchanged);
         }
+        private void mainMsgControl_SysProxySelected(object sender, MainMsgControl.SysProxySelectedEventArgs e)
+        {
+            SetListenerType(e.SelectedType);
+        }
         private void SetListenerType(ESysProxyType type)
         {
             config.sysProxyType = type;
@@ -1373,6 +1427,8 @@ namespace v2rayN.Forms
                 item.Checked = ((int)type == k);
             }
 
+            UpdateSysProxyStatusItems();
+
             ConfigHandler.SaveConfig(ref config, false);
 
             mainMsgControl.DisplayToolStatus(config);
@@ -1383,6 +1439,18 @@ namespace v2rayN.Forms
             }));
         }
 
+        private void UpdateSysProxyStatusItems()
+        {
+            var items = new List<KeyValuePair<ESysProxyType, string>>
+            {
+                new KeyValuePair<ESysProxyType, string>(ESysProxyType.ForcedClear, menuKeepClear.Text),
+                new KeyValuePair<ESysProxyType, string>(ESysProxyType.ForcedChange, menuGlobal.Text),
+                new KeyValuePair<ESysProxyType, string>(ESysProxyType.Unchanged, menuKeepNothing.Text)
+            };
+
+            mainMsgControl.SetSysProxyItems(items, config.sysProxyType, menuSysAgentMode.Text);
+        }
+
         #endregion
 
 
@@ -1391,6 +1459,16 @@ namespace v2rayN.Forms
         private void tsbCheckUpdateN_Click(object sender, EventArgs e)
         {
             Process.Start(Global.UpdateUrl);
+
+            //void _updateUI(bool success, string msg)
+            //{
+            //    AppendText(false, msg);
+            //    if (success)
+            //    {
+            //        menuExit_Click(null, null);
+            //    }
+            //};
+            //(new UpdateHandle()).CheckUpdateGuiN(config, _updateUI, config.checkPreReleaseUpdate);
         }
 
         private void tsbCheckUpdateCore_Click(object sender, EventArgs e)
@@ -1541,6 +1619,7 @@ namespace v2rayN.Forms
         private void SetCurrentLanguage(string value)
         {
             Utils.RegWriteValue(Global.MyRegPath, Global.MyRegKeyLanguage, value);
+            //Application.Restart();
         }
 
         #endregion
@@ -1619,33 +1698,6 @@ namespace v2rayN.Forms
             {
             }
         }
-
-        private void MainMsgControl_ToggleLogRequested(object sender, EventArgs e)
-        {
-            ToggleLogPanel();
-        }
-
-        private bool _isLogHidden = false;
-        
-        private void ToggleLogPanel()
-        {
-            if (_isLogHidden)
-            {
-                // Show log window
-                scBig.SplitterDistance = logPanelSplitterDistance > 0 ? logPanelSplitterDistance : 200;
-                _isLogHidden = false;
-            }
-            else
-            {
-                // Hide log window - show only status bar (about 25px)
-                logPanelSplitterDistance = scBig.SplitterDistance;
-                int statusBarHeight = 22;
-                scBig.SplitterDistance = scBig.Height - statusBarHeight;
-                _isLogHidden = true;
-            }
-            mainMsgControl.SetLogToggleState(!_isLogHidden);
-            mainMsgControl.SetLogTextVisible(!_isLogHidden);
-        }
         #endregion
 
         private class ToolStripGapRenderer : ToolStripProfessionalRenderer
@@ -1667,9 +1719,24 @@ namespace v2rayN.Forms
                     var rect = e.TextRectangle;
                     e.TextRectangle = new Rectangle(rect.X + _extraGap, rect.Y, rect.Width, rect.Height);
                 }
-            base.OnRenderItemText(e);
-        }
-    }
+                base.OnRenderItemText(e);
+            }
 
-}
+            protected override void OnRenderButtonBackground(ToolStripItemRenderEventArgs e)
+            {
+                base.OnRenderButtonBackground(e);
+            }
+
+            protected override void OnRenderDropDownButtonBackground(ToolStripItemRenderEventArgs e)
+            {
+                base.OnRenderDropDownButtonBackground(e);
+            }
+
+            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+            {
+                base.OnRenderToolStripBorder(e);
+            }
+        }
+
+    }
 }

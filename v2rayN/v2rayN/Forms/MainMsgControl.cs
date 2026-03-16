@@ -22,6 +22,7 @@ namespace v2rayN.Forms
         public MainMsgControl()
         {
             InitializeComponent();
+            toolSdbSysProxy.DropDownItemClicked += toolSdbSysProxy_DropDownItemClicked;
             toolSdbRoutingRule.DropDownItemClicked += toolSdbRoutingRule_DropDownItemClicked;
         }
 
@@ -91,14 +92,7 @@ namespace v2rayN.Forms
             sb.Append($"{ResUI.LabLocal}:");
             sb.Append($"[{Global.InboundSocks}:{config.GetLocalPort(Global.InboundSocks)}]");
             sb.Append(" | ");
-            if (config.sysProxyType == ESysProxyType.ForcedChange)
-            {
-                sb.Append($"[{Global.InboundHttp}({ResUI.SystemProxy}):{config.GetLocalPort(Global.InboundHttp)}]");
-            }
-            else
-            {
-                sb.Append($"[{Global.InboundHttp}:{config.GetLocalPort(Global.InboundHttp)}]");
-            }
+            sb.Append($"[{Global.InboundHttp}:{config.GetLocalPort(Global.InboundHttp)}]");
 
             if (config.inbound[0].allowLANConn)
             {
@@ -167,6 +161,35 @@ namespace v2rayN.Forms
             }
         }
 
+        public void SetSysProxyItems(List<KeyValuePair<ESysProxyType, string>> items, ESysProxyType selectedType, string defaultText)
+        {
+            toolSdbSysProxy.DropDownItems.Clear();
+            toolSdbSysProxy.Enabled = items != null && items.Count > 0;
+
+            string selectedText = Utils.IsNullOrEmpty(defaultText) ? ResUI.SystemProxy : defaultText;
+
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    string text = item.Value ?? string.Empty;
+                    ToolStripMenuItem ts = new ToolStripMenuItem(text)
+                    {
+                        Tag = (int)item.Key,
+                        Checked = selectedType == item.Key
+                    };
+                    if (selectedType == item.Key && !Utils.IsNullOrEmpty(text))
+                    {
+                        selectedText = text;
+                    }
+                    toolSdbSysProxy.DropDownItems.Add(ts);
+                }
+            }
+
+            toolSdbSysProxy.Text = selectedText ?? string.Empty;
+            toolSdbSysProxy.ToolTipText = toolSdbSysProxy.Text;
+        }
+
         private void SetRoutingText(string text)
         {
             toolSdbRoutingRule.Text = text ?? string.Empty;
@@ -182,6 +205,22 @@ namespace v2rayN.Forms
 
             int index = Utils.ToInt(e.ClickedItem.Tag);
             RoutingSelected?.Invoke(this, new RoutingSelectedEventArgs(index));
+        }
+
+        private void toolSdbSysProxy_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if (e.ClickedItem == null || e.ClickedItem.Tag == null)
+            {
+                return;
+            }
+
+            int typeValue = Utils.ToInt(e.ClickedItem.Tag);
+            if (!Enum.IsDefined(typeof(ESysProxyType), typeValue))
+            {
+                return;
+            }
+
+            SysProxySelected?.Invoke(this, new SysProxySelectedEventArgs((ESysProxyType)typeValue));
         }
 
         public void ScrollToCaret()
@@ -256,7 +295,7 @@ namespace v2rayN.Forms
 
         private void ssMain_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            if (e.ClickedItem == toolSdbRoutingRule || e.ClickedItem == toolBtnToggleLog)
+            if (e.ClickedItem == toolSdbRoutingRule || e.ClickedItem == toolSdbSysProxy || e.ClickedItem == toolBtnToggleLog)
             {
                 return;
             }
@@ -284,6 +323,7 @@ namespace v2rayN.Forms
 
 
         public event EventHandler<RoutingSelectedEventArgs> RoutingSelected;
+        public event EventHandler<SysProxySelectedEventArgs> SysProxySelected;
         public event EventHandler ToggleLogRequested;
 
         public class RoutingSelectedEventArgs : EventArgs
@@ -294,6 +334,16 @@ namespace v2rayN.Forms
             }
 
             public int SelectedIndex { get; }
+        }
+
+        public class SysProxySelectedEventArgs : EventArgs
+        {
+            public SysProxySelectedEventArgs(ESysProxyType selectedType)
+            {
+                SelectedType = selectedType;
+            }
+
+            public ESysProxyType SelectedType { get; }
         }
     }
 }
