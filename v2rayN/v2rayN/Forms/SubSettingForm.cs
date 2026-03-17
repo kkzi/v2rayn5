@@ -10,7 +10,7 @@ namespace v2rayN.Forms
     public partial class SubSettingForm : BaseForm
     {
         List<SubSettingControl> lstControls = new List<SubSettingControl>();
-        private const int RowSpacing = 2;
+        private const int RowSpacing = 10;
 
         public SubSettingForm()
         {

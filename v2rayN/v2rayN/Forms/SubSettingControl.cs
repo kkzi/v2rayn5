@@ -15,6 +15,9 @@ namespace v2rayN.Forms
 
         private const int QrCodeExtraHeight = 170;
         private const int BottomPadding = 8;
+        private const int DetailLineSpacing = 6;
+        private const int ActionHorizontalSpacing = 6;
+        private const int RemarksWidth = 200;
 
         public SubItem subItem
         {
@@ -30,9 +33,39 @@ namespace v2rayN.Forms
 
         private void SubSettingControl_Load(object sender, EventArgs e)
         {
-            UpdateCollapsedLayout();
-
             BindingSub();
+            ApplyLayoutMetrics();
+            UpdateCollapsedLayout();
+        }
+
+        private void ApplyLayoutMetrics()
+        {
+            try
+            {
+                // 1) Fixed remarks textbox width.
+                txtRemarks.Width = RemarksWidth;
+
+                // 2) Detail line spacing (vertical).
+                // Keep original label/textbox baselines, only adjust gaps between rows.
+                int label2Delta = label2.Top - txtRemarks.Top;
+                int label3Delta = label3.Top - txtUrl.Top;
+                int label1Delta = label1.Top - txtUserAgent.Top;
+
+                txtUrl.Top = txtRemarks.Bottom + DetailLineSpacing;
+                label3.Top = txtUrl.Top + label3Delta;
+
+                txtUserAgent.Top = txtUrl.Bottom + DetailLineSpacing;
+                label1.Top = txtUserAgent.Top + label1Delta;
+
+                label2.Top = txtRemarks.Top + label2Delta;
+
+                // 3) Actions horizontal spacing and right-edge alignment with address textbox.
+                int right = txtUrl.Right;
+                btnRemove.Left = right - btnRemove.Width;
+                btnShare.Left = btnRemove.Left - ActionHorizontalSpacing - btnShare.Width;
+                chkEnabled.Left = btnShare.Left - ActionHorizontalSpacing - chkEnabled.Width;
+            }
+            catch { }
         }
 
         private void UpdateCollapsedLayout()
@@ -69,8 +102,8 @@ namespace v2rayN.Forms
         {
             if (subItem != null)
             {
-                txtRemarks.Text = subItem.remarks.ToString();
-                txtUrl.Text = subItem.url.ToString();
+                txtRemarks.Text = subItem.remarks;
+                txtUrl.Text = subItem.url;
                 chkEnabled.Checked = subItem.enabled;
                 txtUserAgent.Text = subItem.userAgent;
             }
