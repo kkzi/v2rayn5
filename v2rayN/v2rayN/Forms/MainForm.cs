@@ -455,11 +455,15 @@ namespace v2rayN.Forms
             private const int ButtonHeight = 32;
             private const int ButtonWidth = 80;
             private const int DialogHeight = 120;
-            private const int DialogWidth = 420;
+            private const int DialogWidth = 320;
             private const int ButtonSpacing = 12;
             private const int SidePadding = 14;
             private const int TopPadding = 14;
             private const int BottomPadding = 12;
+
+            private readonly TextBox messageBox_;
+            private readonly Button btnYes_;
+            private readonly Button btnNo_;
 
             public ExitConfirmDialog(string title, string message, Font ownerFont, Icon ownerIcon)
             {
@@ -477,9 +481,11 @@ namespace v2rayN.Forms
                     Icon = ownerIcon;
                 }
 
-                Size = new Size(DialogWidth, DialogHeight);
+                ClientSize = new Size(DialogWidth, DialogHeight);
+                MinimumSize = Size;
+                MaximumSize = Size;
 
-                var txt = new TextBox
+                messageBox_ = new TextBox
                 {
                     BorderStyle = BorderStyle.None,
                     Multiline = true,
@@ -493,7 +499,7 @@ namespace v2rayN.Forms
                     Width = ClientSize.Width - SidePadding * 2
                 };
 
-                var btnYes = new Button
+                btnYes_ = new Button
                 {
                     Text = GetYesText(),
                     DialogResult = DialogResult.Yes,
@@ -501,7 +507,7 @@ namespace v2rayN.Forms
                     Size = new Size(ButtonWidth, ButtonHeight)
                 };
 
-                var btnNo = new Button
+                btnNo_ = new Button
                 {
                     Text = GetNoText(),
                     DialogResult = DialogResult.No,
@@ -509,22 +515,51 @@ namespace v2rayN.Forms
                     Size = new Size(ButtonWidth, ButtonHeight)
                 };
 
-                AcceptButton = btnYes;
-                CancelButton = btnNo;
+                AcceptButton = btnYes_;
+                CancelButton = btnNo_;
 
-                int buttonsTotalWidth = ButtonWidth * 2 + ButtonSpacing;
-                int buttonsLeft = (ClientSize.Width - buttonsTotalWidth) / 2;
-                int buttonsTop = ClientSize.Height - BottomPadding - ButtonHeight;
-                btnYes.Left = buttonsLeft;
-                btnYes.Top = buttonsTop;
-                btnNo.Left = btnYes.Right + ButtonSpacing;
-                btnNo.Top = buttonsTop;
+                Controls.Add(messageBox_);
+                Controls.Add(btnYes_);
+                Controls.Add(btnNo_);
 
-                txt.Height = Math.Max(0, btnYes.Top - TopPadding - 6);
+                ApplyFixedLayout();
+            }
 
-                Controls.Add(txt);
-                Controls.Add(btnYes);
-                Controls.Add(btnNo);
+            protected override void OnShown(EventArgs e)
+            {
+                base.OnShown(e);
+                try
+                {
+                    // Re-apply after handle creation to make the size/positions deterministic.
+                    ClientSize = new Size(DialogWidth, DialogHeight);
+                    MinimumSize = Size;
+                    MaximumSize = Size;
+                    ApplyFixedLayout();
+                }
+                catch { }
+            }
+
+            private void ApplyFixedLayout()
+            {
+                try
+                {
+                    messageBox_.Left = SidePadding;
+                    messageBox_.Top = TopPadding;
+                    messageBox_.Width = Math.Max(0, ClientSize.Width - SidePadding * 2);
+
+                    int buttonsTotalWidth = ButtonWidth * 2 + ButtonSpacing;
+                    int buttonsLeft = Math.Max(0, (ClientSize.Width - buttonsTotalWidth) / 2);
+                    int buttonsTop = Math.Max(0, ClientSize.Height - BottomPadding - ButtonHeight);
+
+                    btnYes_.Left = buttonsLeft;
+                    btnYes_.Top = buttonsTop;
+
+                    btnNo_.Left = btnYes_.Right + ButtonSpacing;
+                    btnNo_.Top = buttonsTop;
+
+                    messageBox_.Height = Math.Max(0, btnYes_.Top - TopPadding - 6);
+                }
+                catch { }
             }
 
             private static string GetYesText()
