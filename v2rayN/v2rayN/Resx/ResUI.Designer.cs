@@ -122,6 +122,24 @@ namespace v2rayN.Resx {
                 return ResourceManager.GetString("Downloading", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   查找类似 Exit Program 的本地化字符串。
+        /// </summary>
+        internal static string ExitProgramTitle {
+            get {
+                return ResourceManager.GetString("ExitProgramTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Exit program? 的本地化字符串。
+        /// </summary>
+        internal static string ExitProgramMessage {
+            get {
+                return ResourceManager.GetString("ExitProgramMessage", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   查找类似 Whether to download? {0} 的本地化字符串。

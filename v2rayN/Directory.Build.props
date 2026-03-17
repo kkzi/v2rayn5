@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Disable NuGet vulnerability auditing to avoid NU1900 when audit data can't be fetched. -->
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+</Project>
+

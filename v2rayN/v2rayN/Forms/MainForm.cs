@@ -3,14 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
+using v2rayN.Resx;
 using v2rayN.Base;
 using v2rayN.Handler;
 using v2rayN.Mode;
-using v2rayN.Resx;
 using v2rayN.Tool;
 
 namespace v2rayN.Forms
@@ -27,6 +31,15 @@ namespace v2rayN.Forms
         private string serverFilter = string.Empty;
         private bool _isLogHidden;
         private int logPanelSplitterDistance;
+        private bool _allowExitOnClose;
+        private readonly List<Image> _ownedToolbarImages = new List<Image>();
+
+        private const int WM_SYSCOMMAND = 0x0112;
+        private const int SC_CLOSE = 0xF060;
+        private const int VK_MENU = 0x12;
+
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int vKey);
 
         #region Window 事件
 
@@ -58,6 +71,10 @@ namespace v2rayN.Forms
                     btn.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
                     btn.TextImageRelation = TextImageRelation.ImageBeforeText;
                 }
+
+                // Resource icons are mostly 32x32. ToolStrip will downscale to 16x16 with suboptimal quality.
+                // Pre-scale once using high-quality interpolation and disable further scaling to avoid blur.
+                NormalizeToolStripItemImage(item, tsMain.ImageScalingSize);
             }
 
             Text = Utils.GetVersion();
@@ -67,6 +84,91 @@ namespace v2rayN.Forms
             {
                 MyAppExit(false);
             };
+
+            FormClosed += (s, e) =>
+            {
+                try
+                {
+                    foreach (var img in _ownedToolbarImages)
+                    {
+                        img?.Dispose();
+                    }
+                    _ownedToolbarImages.Clear();
+                }
+                catch { }
+            };
+        }
+
+        private void NormalizeToolStripItemImage(ToolStripItem item, Size targetSize)
+        {
+            try
+            {
+                if (item == null || item.Image == null)
+                {
+                    return;
+                }
+
+                // Only resample when needed.
+                if (item.Image.Width == targetSize.Width && item.Image.Height == targetSize.Height)
+                {
+                    item.ImageScaling = ToolStripItemImageScaling.None;
+                    return;
+                }
+
+                var scaled = CreateHighQualityResizedBitmap(item.Image, targetSize);
+                if (scaled == null)
+                {
+                    return;
+                }
+
+                item.Image = scaled;
+                item.ImageScaling = ToolStripItemImageScaling.None;
+                _ownedToolbarImages.Add(scaled);
+            }
+            catch { }
+        }
+
+        private static Bitmap CreateHighQualityResizedBitmap(Image src, Size targetSize)
+        {
+            if (src == null)
+            {
+                return null;
+            }
+
+            var bmp = new Bitmap(targetSize.Width, targetSize.Height, PixelFormat.Format32bppPArgb);
+            try
+            {
+                bmp.SetResolution(src.HorizontalResolution, src.VerticalResolution);
+                using (var g = Graphics.FromImage(bmp))
+                using (var attrs = new ImageAttributes())
+                {
+                    g.Clear(Color.Transparent);
+                    g.CompositingMode = CompositingMode.SourceOver;
+                    g.CompositingQuality = CompositingQuality.HighQuality;
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = SmoothingMode.HighQuality;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                    // Reduce edge artifacts when downscaling.
+                    attrs.SetWrapMode(WrapMode.TileFlipXY);
+
+                    g.DrawImage(
+                        src,
+                        new Rectangle(0, 0, targetSize.Width, targetSize.Height),
+                        0,
+                        0,
+                        src.Width,
+                        src.Height,
+                        GraphicsUnit.Pixel,
+                        attrs);
+                }
+                return bmp;
+            }
+            catch
+            {
+                bmp.Dispose();
+                return null;
+            }
         }
 
         private static void ApplyCompactToolStripStyle(ToolStrip toolStrip)
@@ -105,6 +207,18 @@ namespace v2rayN.Forms
                 Environment.Exit(0);
                 return;
             }
+
+            // Restore main servers listview column widths to defaults (temporarily).
+            // This clears persisted column widths to avoid unexpected layout issues after font changes.
+            try
+            {
+                if (config?.uiItem?.mainLvColWidth != null && config.uiItem.mainLvColWidth.Count > 0)
+                {
+                    config.uiItem.mainLvColWidth.Clear();
+                    ConfigHandler.SaveConfig(ref config, false);
+                }
+            }
+            catch { }
 
             ConfigHandler.InitBuiltinRouting(ref config);
             MainFormHandler.Instance.BackupGuiNConfig(config, true);
@@ -214,13 +328,495 @@ namespace v2rayN.Forms
                     e.SuppressKeyPress = true;
                     return;
                 }
+                if (TryHandleAltPingShortcuts(e))
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    return;
+                }
             }
+
+            // Main form shortcuts (KeyPreview = true):
+            // - Ctrl+V: smart import from clipboard (subscription or server)
+            // - Ctrl+R / F5: update current subscription group (ignore Unsubscribed)
+            // - Ctrl+Shift+R / Ctrl+F5: update all subscription groups
+            if (TryHandleMainFormShortcuts(e))
+            {
+                return;
+            }
+
             if (e.Control && e.KeyCode == Keys.F)
             {
                 FocusServerFilter();
                 e.Handled = true;
                 e.SuppressKeyPress = true;
             }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            try
+            {
+                if (m.Msg == WM_SYSCOMMAND)
+                {
+                    int cmd = (m.WParam.ToInt32() & 0xFFF0);
+                    if (cmd == SC_CLOSE)
+                    {
+                        if (!_allowExitOnClose && IsAltKeyDown())
+                        {
+                            if (MessageBox.Show(ResUI.ExitProgramMessage, ResUI.ExitProgramTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                            {
+                                _allowExitOnClose = true;
+                            }
+                            else
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            base.WndProc(ref m);
+        }
+
+        private static bool IsAltKeyDown()
+        {
+            try
+            {
+                return (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+            }
+            catch { }
+            return (Control.ModifierKeys & Keys.Alt) == Keys.Alt;
+        }
+
+        private bool TryHandleAltPingShortcuts(KeyEventArgs e)
+        {
+            if (e == null)
+            {
+                return false;
+            }
+            if (!e.Alt || e.Control || e.Shift)
+            {
+                return false;
+            }
+
+            switch (e.KeyCode)
+            {
+                case Keys.P:
+                    menuPingServer_Click(null, null);
+                    return true;
+                case Keys.T:
+                    menuTcpingServer_Click(null, null);
+                    return true;
+                case Keys.R:
+                    menuRealPingServer_Click(null, null);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private bool TryHandleMainFormShortcuts(KeyEventArgs e)
+        {
+            if (e == null)
+            {
+                return false;
+            }
+
+            // Ctrl+V: only intercept when focused control is not editable (per requirement).
+            if (e.Control && !e.Shift && !e.Alt && e.KeyCode == Keys.V)
+            {
+                if (IsEditableControlFocused())
+                {
+                    return false;
+                }
+
+                if (TryHandleClipboardImport())
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    return true;
+                }
+                return false;
+            }
+
+            // Update subscription shortcuts.
+            // Current: Ctrl+R or F5
+            if (!e.Alt && !e.Shift && e.Control && e.KeyCode == Keys.R)
+            {
+                TryUpdateCurrentSubscriptionByShortcut();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return true;
+            }
+            if (!e.Alt && !e.Control && !e.Shift && e.KeyCode == Keys.F5)
+            {
+                TryUpdateCurrentSubscriptionByShortcut();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return true;
+            }
+
+            // All: Ctrl+Shift+R or Ctrl+F5
+            if (!e.Alt && e.Control && e.Shift && e.KeyCode == Keys.R)
+            {
+                UpdateAllSubscriptionsByShortcut();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return true;
+            }
+            if (!e.Alt && e.Control && e.KeyCode == Keys.F5)
+            {
+                UpdateAllSubscriptionsByShortcut();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void TryUpdateCurrentSubscriptionByShortcut()
+        {
+            // Ignore "Unsubscribed" tab silently.
+            if (_subId == UnsubscribedTabId)
+            {
+                return;
+            }
+            UpdateSubscriptionProcess(_subId, IsProxyEnabledForSubscriptionUpdate());
+        }
+
+        private void UpdateAllSubscriptionsByShortcut()
+        {
+            UpdateSubscriptionProcess("", IsProxyEnabledForSubscriptionUpdate());
+        }
+
+        private bool IsProxyEnabledForSubscriptionUpdate()
+        {
+            try
+            {
+                return config != null && config.sysProxyType == ESysProxyType.ForcedChange;
+            }
+            catch { }
+            return false;
+        }
+
+        private bool TryHandleClipboardImport()
+        {
+            try
+            {
+                var clipboardData = Utils.GetClipboardData();
+                var lines = GetNonEmptyLines(clipboardData);
+                if (lines == null || lines.Count <= 0)
+                {
+                    return false;
+                }
+
+                // Prefer server import when any share urls exist in clipboard.
+                if (lines.Any(IsServerShareUrl) || lines.Any(LooksLikeOtherServerShareUrl))
+                {
+                    return TryImportServersFromClipboard(clipboardData);
+                }
+                // One or more subscription urls: add/switch and update.
+                if (lines.Any(IsHttpUrl))
+                {
+                    return TryAddOrSwitchSubscriptionGroupsAndUpdate(lines.Where(IsHttpUrl).ToList());
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Utils.SaveLog("TryHandleClipboardImport", ex);
+                return false;
+            }
+        }
+
+        private bool TryImportServersFromClipboard(string clipboardData)
+        {
+            string data = (clipboardData ?? string.Empty).TrimEx();
+            if (Utils.IsNullOrEmpty(data))
+            {
+                return false;
+            }
+
+            try
+            {
+                int ret = ConfigHandler.AddBatchServers(ref config, data, "");
+                if (ret > 0)
+                {
+                    InitSubView(_subId);
+                    SelectUnsubscribedTab();
+                    RefreshServers();
+                    UI.Show(string.Format(ResUI.SuccessfullyImportedServerViaClipboard, ret));
+                    return true;
+                }
+
+                // Keep this message consistent with ShareHandler failure semantics.
+                UI.ShowWarning(ResUI.NonvmessOrssProtocol);
+                return true;
+            }
+            catch { }
+            return false;
+        }
+
+        private static List<string> GetNonEmptyLines(string text)
+        {
+            var result = new List<string>();
+            if (Utils.IsNullOrEmpty(text))
+            {
+                return result;
+            }
+            try
+            {
+                var parts = text
+                    .Replace("\r\n", "\n")
+                    .Replace("\r", "\n")
+                    .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var p in parts)
+                {
+                    var line = (p ?? string.Empty).TrimEx();
+                    if (!Utils.IsNullOrEmpty(line))
+                    {
+                        result.Add(line);
+                    }
+                }
+            }
+            catch { }
+            return result;
+        }
+
+        private static bool IsHttpUrl(string text)
+        {
+            if (Utils.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+            return text.StartsWith(Global.httpProtocol, StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith(Global.httpsProtocol, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsServerShareUrl(string text)
+        {
+            if (Utils.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            // Keep this aligned with ShareHandler.ImportFromClipboardConfig support.
+            return text.StartsWith(Global.vmessProtocol, StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith(Global.vlessProtocol, StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith(Global.ssProtocol, StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith(Global.socksProtocol, StringComparison.OrdinalIgnoreCase)
+                || text.StartsWith(Global.trojanProtocol, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool LooksLikeOtherServerShareUrl(string text)
+        {
+            if (Utils.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            // Generic scheme://... but exclude http(s) which are treated as subscription urls.
+            if (IsHttpUrl(text))
+            {
+                return false;
+            }
+
+            return Regex.IsMatch(text.TrimEx(), @"^[a-z][a-z0-9+\.-]*://", RegexOptions.IgnoreCase);
+        }
+
+        private bool TryAddOrSwitchSubscriptionGroupsAndUpdate(List<string> urls)
+        {
+            if (urls == null || urls.Count <= 0)
+            {
+                return false;
+            }
+
+            string lastSubId = string.Empty;
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var u in urls)
+            {
+                if (!IsHttpUrl(u))
+                {
+                    continue;
+                }
+                var normalizedUrl = (u ?? string.Empty).TrimEx();
+                if (Utils.IsNullOrEmpty(normalizedUrl) || visited.Contains(normalizedUrl))
+                {
+                    continue;
+                }
+                visited.Add(normalizedUrl);
+
+                lastSubId = TryAddOrSwitchSubscriptionGroup(normalizedUrl);
+                if (!Utils.IsNullOrEmpty(lastSubId))
+                {
+                    UpdateSubscriptionProcess(lastSubId, IsProxyEnabledForSubscriptionUpdate());
+                }
+            }
+
+            if (!Utils.IsNullOrEmpty(lastSubId))
+            {
+                InitSubView(lastSubId);
+                RefreshServers();
+                return true;
+            }
+
+            return false;
+        }
+
+        private string TryAddOrSwitchSubscriptionGroup(string url)
+        {
+            if (config == null)
+            {
+                return string.Empty;
+            }
+
+            var normalizedUrl = (url ?? string.Empty).TrimEx();
+            if (Utils.IsNullOrEmpty(normalizedUrl))
+            {
+                return string.Empty;
+            }
+
+            // Existing: do not add, just switch.
+            var existing = config.subItem?.FirstOrDefault(it =>
+                it != null
+                && !Utils.IsNullOrEmpty(it.url)
+                && string.Equals(it.url.TrimEx(), normalizedUrl, StringComparison.OrdinalIgnoreCase));
+
+            if (existing != null)
+            {
+                if (Utils.IsNullOrEmpty(existing.id))
+                {
+                    ConfigHandler.SaveSubItem(ref config);
+                }
+                return existing.id;
+            }
+
+            var host = ExtractHostOrIpFromUrl(normalizedUrl);
+            if (Utils.IsNullOrEmpty(host))
+            {
+                host = "import sub";
+            }
+
+            if (config.subItem == null)
+            {
+                config.subItem = new List<SubItem>();
+            }
+
+            var newSub = new SubItem
+            {
+                id = string.Empty,
+                remarks = host,
+                url = normalizedUrl,
+                enabled = true
+            };
+            config.subItem.Add(newSub);
+            ConfigHandler.SaveSubItem(ref config);
+            return newSub.id;
+        }
+
+        private static string ExtractHostOrIpFromUrl(string url)
+        {
+            if (Utils.IsNullOrEmpty(url))
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                if (Uri.TryCreate(url.TrimEx(), UriKind.Absolute, out var u))
+                {
+                    if (u.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+                        || u.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return (u.IdnHost ?? string.Empty).TrimEx();
+                    }
+                }
+            }
+            catch { }
+
+            try
+            {
+                // Fallback: https?://<host>...
+                var m = Regex.Match(url.TrimEx(), @"^https?://(?<host>[^/?#]+)", RegexOptions.IgnoreCase);
+                if (m.Success)
+                {
+                    var host = (m.Groups["host"].Value ?? string.Empty).TrimEx();
+                    // Strip userinfo if any: user:pass@host
+                    var at = host.LastIndexOf('@');
+                    if (at >= 0)
+                    {
+                        host = host.Substring(at + 1);
+                    }
+                    // Strip port (IPv6 may be [::1]:port)
+                    if (host.StartsWith("[") && host.Contains("]"))
+                    {
+                        var end = host.IndexOf(']');
+                        return host.Substring(1, end - 1);
+                    }
+                    var colon = host.LastIndexOf(':');
+                    if (colon > 0)
+                    {
+                        return host.Substring(0, colon);
+                    }
+                    return host;
+                }
+            }
+            catch { }
+
+            return string.Empty;
+        }
+
+        private bool IsEditableControlFocused()
+        {
+            try
+            {
+                var focused = GetDeepFocusedControl(this);
+                if (focused == null)
+                {
+                    return false;
+                }
+
+                if (focused is TextBoxBase)
+                {
+                    return true;
+                }
+
+                if (focused is ComboBox cb)
+                {
+                    // DropDownList is not editable; others are.
+                    return cb.DropDownStyle != ComboBoxStyle.DropDownList;
+                }
+
+                return false;
+            }
+            catch { }
+            return false;
+        }
+
+        private static Control GetDeepFocusedControl(Control root)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                Control c = root;
+                while (c is ContainerControl container && container.ActiveControl != null)
+                {
+                    c = container.ActiveControl;
+                }
+                return c;
+            }
+            catch { }
+            return root;
         }
 
         private bool TrySwitchToTabByAltDigit(Keys keyCode)
@@ -290,9 +886,16 @@ namespace v2rayN.Forms
             switch (e.CloseReason)
             {
                 case CloseReason.UserClosing:
-                    StorageUI();
-                    e.Cancel = true;
-                    HideForm();
+                    if (_allowExitOnClose)
+                    {
+                        e.Cancel = false;
+                    }
+                    else
+                    {
+                        StorageUI();
+                        e.Cancel = true;
+                        HideForm();
+                    }
                     break;
                 case CloseReason.ApplicationExitCall:
                 case CloseReason.FormOwnerClosing:
@@ -909,16 +1512,22 @@ namespace v2rayN.Forms
                         menuExport2ShareUrl_Click(null, null);
                         break;
                     case Keys.V:
-                        menuAddServers_Click(null, null);
+                        if (TryHandleClipboardImport())
+                        {
+                            e.Handled = true;
+                            e.SuppressKeyPress = true;
+                            return;
+                        }
                         break;
                     case Keys.P:
-                        menuPingServer_Click(null, null);
+                        // moved to Alt+P
                         break;
                     case Keys.O:
-                        menuTcpingServer_Click(null, null);
+                        // moved to Alt+T
                         break;
                     case Keys.R:
-                        menuRealPingServer_Click(null, null);
+                        // Reserved for subscription update on main form (Ctrl+R),
+                        // keep list shortcut consistent: do not trigger other actions here.
                         break;
                     case Keys.S:
                         menuScanScreen_Click(null, null);

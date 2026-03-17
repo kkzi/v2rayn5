@@ -135,6 +135,12 @@
   <data name="Downloading" xml:space="preserve">
     <value>Downloading...</value>
   </data>
+  <data name="ExitProgramTitle" xml:space="preserve">
+    <value>Exit Program</value>
+  </data>
+  <data name="ExitProgramMessage" xml:space="preserve">
+    <value>Exit program?</value>
+  </data>
   <data name="DownloadYesNo" xml:space="preserve">
     <value>Whether to download? {0}</value>
   </data>

@@ -135,6 +135,12 @@
   <data name="Downloading" xml:space="preserve">
     <value>下载开始...</value>
   </data>
+  <data name="ExitProgramTitle" xml:space="preserve">
+    <value>退出程序</value>
+  </data>
+  <data name="ExitProgramMessage" xml:space="preserve">
+    <value>是否退出程序?</value>
+  </data>
   <data name="DownloadYesNo" xml:space="preserve">
     <value>是否下载? {0}</value>
   </data>

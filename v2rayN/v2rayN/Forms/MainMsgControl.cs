@@ -19,12 +19,17 @@ namespace v2rayN.Forms
         private string _msgFilter = string.Empty;
         delegate void AppendTextDelegate(string text);
 
-        private static readonly Font StatusBarFont = new Font("Microsoft YaHei UI", 8F, FontStyle.Regular, GraphicsUnit.Point);
-
         public MainMsgControl()
         {
             InitializeComponent();
-            ssMain.Font = StatusBarFont;
+            // Keep status bar height stable after switching to 10pt font globally.
+            // Otherwise StatusStrip auto-sizes and becomes noticeably taller.
+            try
+            {
+                ssMain.AutoSize = false;
+                ssMain.Height = 20;
+            }
+            catch { }
             toolSdbSysProxy.DropDownItemClicked += toolSdbSysProxy_DropDownItemClicked;
             toolSdbRoutingRule.DropDownItemClicked += toolSdbRoutingRule_DropDownItemClicked;
         }

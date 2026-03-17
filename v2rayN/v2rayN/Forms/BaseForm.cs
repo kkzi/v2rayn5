@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 using v2rayN.Mode;
 using v2rayN.Resx;
@@ -9,12 +10,27 @@ namespace v2rayN.Forms
     public partial class BaseForm : Form
     {
         protected static Config config;
+        private static readonly Lazy<Font> appFont = new Lazy<Font>(CreateAppFont);
 
         public BaseForm()
         {
             InitializeComponent();
+
+            // Set app-wide UI font (one place only).
+            // Do it after InitializeComponent and switch autoscaling away from Font, otherwise many forms will
+            // scale their size/padding unexpectedly.
+            AutoScaleMode = AutoScaleMode.Dpi;
+            Font = appFont.Value;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             LoadCustomIcon();
+        }
+
+        private static Font CreateAppFont()
+        {
+            // Prefer Microsoft YaHei 9pt. Fall back to default if unavailable.
+            try { return new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point); } catch { }
+            try { return new Font("Microsoft YaHei", 9F, FontStyle.Regular, GraphicsUnit.Point); } catch { }
+            return Control.DefaultFont;
         }
 
         protected void CloseCancel()
