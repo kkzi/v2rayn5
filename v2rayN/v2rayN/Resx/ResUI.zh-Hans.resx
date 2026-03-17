@@ -141,6 +141,12 @@
   <data name="ExitProgramMessage" xml:space="preserve">
     <value>是否退出程序?</value>
   </data>
+  <data name="DialogYes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="DialogNo" xml:space="preserve">
+    <value>否</value>
+  </data>
   <data name="DownloadYesNo" xml:space="preserve">
     <value>是否下载? {0}</value>
   </data>

@@ -142,6 +142,24 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Yes 的本地化字符串。
+        /// </summary>
+        internal static string DialogYes {
+            get {
+                return ResourceManager.GetString("DialogYes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No 的本地化字符串。
+        /// </summary>
+        internal static string DialogNo {
+            get {
+                return ResourceManager.GetString("DialogNo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Whether to download? {0} 的本地化字符串。
         /// </summary>
         internal static string DownloadYesNo {

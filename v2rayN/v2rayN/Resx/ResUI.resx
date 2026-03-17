@@ -141,6 +141,12 @@
   <data name="ExitProgramMessage" xml:space="preserve">
     <value>Exit program?</value>
   </data>
+  <data name="DialogYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="DialogNo" xml:space="preserve">
+    <value>No</value>
+  </data>
   <data name="DownloadYesNo" xml:space="preserve">
     <value>Whether to download? {0}</value>
   </data>

@@ -454,7 +454,7 @@ namespace v2rayN.Forms
         {
             private const int ButtonHeight = 32;
             private const int ButtonWidth = 80;
-            private const int DialogHeight = 120;
+            private const int DialogHeight = 160;
             private const int DialogWidth = 320;
             private const int ButtonSpacing = 12;
             private const int SidePadding = 14;
@@ -502,7 +502,7 @@ namespace v2rayN.Forms
 
                 btnYes_ = new Button
                 {
-                    Text = GetYesText(),
+                    Text = ResUI.DialogYes,
                     DialogResult = DialogResult.Yes,
                     AutoSize = false,
                     Size = new Size(ButtonWidth, ButtonHeight)
@@ -510,7 +510,7 @@ namespace v2rayN.Forms
 
                 btnNo_ = new Button
                 {
-                    Text = GetNoText(),
+                    Text = ResUI.DialogNo,
                     DialogResult = DialogResult.No,
                     AutoSize = false,
                     Size = new Size(ButtonWidth, ButtonHeight)
@@ -563,27 +563,7 @@ namespace v2rayN.Forms
                 catch { }
             }
 
-            private static string GetYesText()
-            {
-                try
-                {
-                    var name = System.Threading.Thread.CurrentThread.CurrentUICulture?.Name ?? string.Empty;
-                    if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase)) return "是";
-                }
-                catch { }
-                return "Yes";
-            }
-
-            private static string GetNoText()
-            {
-                try
-                {
-                    var name = System.Threading.Thread.CurrentThread.CurrentUICulture?.Name ?? string.Empty;
-                    if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase)) return "否";
-                }
-                catch { }
-                return "No";
-            }
+            // Button texts come from ResUI (DialogYes/DialogNo).
         }
 
         private static bool IsAltKeyDown()
