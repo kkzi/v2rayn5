@@ -376,7 +376,7 @@ namespace v2rayN.Forms
                     {
                         if (!_allowExitOnClose && IsAltKeyDown())
                         {
-                            if (MessageBox.Show(this, ResUI.ExitProgramMessage, ResUI.ExitProgramTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                            if (ConfirmExitClose() == DialogResult.Yes)
                             {
                                 _allowExitOnClose = true;
                             }
@@ -391,6 +391,161 @@ namespace v2rayN.Forms
             catch { }
 
             base.WndProc(ref m);
+        }
+
+        private DialogResult ConfirmExitClose()
+        {
+            // MessageBox.Show(owner, ...) is not reliably centered to owner in all window states.
+            // Use a small owned dialog so CenterParent is deterministic.
+            var prevVisible = Visible;
+            var prevShowInTaskbar = ShowInTaskbar;
+            var prevWindowState = WindowState;
+
+            try
+            {
+                if (!Visible)
+                {
+                    ShowInTaskbar = true;
+                    Show();
+                }
+
+                if (WindowState == FormWindowState.Minimized)
+                {
+                    WindowState = FormWindowState.Normal;
+                }
+
+                BringToFront();
+                Activate();
+            }
+            catch { }
+
+            DialogResult result;
+            try
+            {
+                using (var dialog = new ExitConfirmDialog(ResUI.ExitProgramTitle, ResUI.ExitProgramMessage, Font, Icon))
+                {
+                    result = dialog.ShowDialog(this);
+                }
+            }
+            catch
+            {
+                // Fallback to the default MessageBox.
+                result = MessageBox.Show(ResUI.ExitProgramMessage, ResUI.ExitProgramTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            }
+
+            if (result != DialogResult.Yes)
+            {
+                try
+                {
+                    WindowState = prevWindowState;
+                    if (!prevVisible)
+                    {
+                        Hide();
+                    }
+                    ShowInTaskbar = prevShowInTaskbar;
+                }
+                catch { }
+            }
+
+            return result;
+        }
+
+        private sealed class ExitConfirmDialog : Form
+        {
+            public ExitConfirmDialog(string title, string message, Font ownerFont, Icon ownerIcon)
+            {
+                Text = title ?? string.Empty;
+                StartPosition = FormStartPosition.CenterParent;
+                FormBorderStyle = FormBorderStyle.FixedDialog;
+                MinimizeBox = false;
+                MaximizeBox = false;
+                ShowInTaskbar = false;
+                AutoScaleMode = AutoScaleMode.Dpi;
+                Font = ownerFont ?? Font;
+                if (ownerIcon != null)
+                {
+                    Icon = ownerIcon;
+                }
+
+                var label = new Label
+                {
+                    AutoSize = true,
+                    MaximumSize = new Size(460, 0),
+                    Text = message ?? string.Empty
+                };
+
+                var btnYes = new Button
+                {
+                    Text = GetYesText(),
+                    DialogResult = DialogResult.Yes,
+                    AutoSize = true,
+                    Padding = new Padding(10, 2, 10, 2)
+                };
+
+                var btnNo = new Button
+                {
+                    Text = GetNoText(),
+                    DialogResult = DialogResult.No,
+                    AutoSize = true,
+                    Padding = new Padding(10, 2, 10, 2)
+                };
+
+                AcceptButton = btnYes;
+                CancelButton = btnNo;
+
+                var buttons = new FlowLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    FlowDirection = FlowDirection.RightToLeft,
+                    WrapContents = false,
+                    AutoSize = true,
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink
+                };
+                buttons.Controls.Add(btnNo);
+                buttons.Controls.Add(btnYes);
+
+                var layout = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    AutoSize = true,
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    ColumnCount = 1,
+                    RowCount = 2,
+                    Padding = new Padding(14)
+                };
+                layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                layout.Controls.Add(label, 0, 0);
+                layout.Controls.Add(buttons, 0, 1);
+
+                Controls.Add(layout);
+
+                // Ensure a reasonable minimum width so the dialog doesn't look cramped.
+                MinimumSize = new Size(320, 0);
+                AutoSize = true;
+            }
+
+            private static string GetYesText()
+            {
+                try
+                {
+                    var name = System.Threading.Thread.CurrentThread.CurrentUICulture?.Name ?? string.Empty;
+                    if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase)) return "是";
+                }
+                catch { }
+                return "Yes";
+            }
+
+            private static string GetNoText()
+            {
+                try
+                {
+                    var name = System.Threading.Thread.CurrentThread.CurrentUICulture?.Name ?? string.Empty;
+                    if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase)) return "否";
+                }
+                catch { }
+                return "No";
+            }
         }
 
         private static bool IsAltKeyDown()
