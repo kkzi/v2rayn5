@@ -46,6 +46,10 @@ namespace v2rayN.Forms
         public MainForm()
         {
             InitializeComponent();
+            // Main window positioning is handled by config restore logic.
+            StartPosition = FormStartPosition.Manual;
+            // Override BaseForm's FixedSingle to allow resizing the main window.
+            FormBorderStyle = FormBorderStyle.Sizable;
             MinimumSize = new Size(1000, 640);
             mainMsgControl.SysProxySelected += mainMsgControl_SysProxySelected;
             mainMsgControl.RoutingSelected += MainMsgControl_RoutingSelected;
@@ -97,6 +101,9 @@ namespace v2rayN.Forms
                 }
                 catch { }
             };
+
+            // Avoid QR panel flashing during startup (before config/UI restore).
+            try { scServers.Panel2Collapsed = true; } catch { }
         }
 
         private void NormalizeToolStripItemImage(ToolStripItem item, Size targetSize)
@@ -208,6 +215,10 @@ namespace v2rayN.Forms
                 return;
             }
 
+            // Apply window size before the form is first shown.
+            // Use last saved size from guiNConfig.json, clamped to MinimumSize, to avoid visible resize "jump".
+            RestoreWindowSize();
+
             // Restore main servers listview column widths to defaults (temporarily).
             // This clears persisted column widths to avoid unexpected layout issues after font changes.
             try
@@ -253,9 +264,9 @@ namespace v2rayN.Forms
                 InitSubView(activePreferSubId, exitPreferSubId);
             }
             InitServersView();
+            RestoreMainLvColumns();
             RefreshServers();
             RefreshRoutingsMenu();
-            RestoreUI();
 
             if (!config.uiItem.showMainOnStartup)
             {
@@ -364,7 +375,7 @@ namespace v2rayN.Forms
                     {
                         if (!_allowExitOnClose && IsAltKeyDown())
                         {
-                            if (MessageBox.Show(ResUI.ExitProgramMessage, ResUI.ExitProgramTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                            if (MessageBox.Show(this, ResUI.ExitProgramMessage, ResUI.ExitProgramTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                             {
                                 _allowExitOnClose = true;
                             }
@@ -937,25 +948,60 @@ namespace v2rayN.Forms
 
         private void RestoreUI()
         {
-            scServers.Panel2Collapsed = true;
+            // Legacy wrapper: keep for compatibility if other call sites exist.
+            RestoreMainLvColumns();
+        }
 
-            if (!config.uiItem.mainSize.IsEmpty)
+        private void RestoreWindowSize()
+        {
+            try
             {
-                Width = config.uiItem.mainSize.Width;
-                Height = config.uiItem.mainSize.Height;
-            }
-
-
-            for (int k = 0; k < lvServers.Columns.Count; k++)
-            {
-                var key = lvServers.Columns[k].Name;
-                if (Utils.IsNullOrEmpty(key))
+                if (config?.uiItem == null)
                 {
-                    key = ((EServerColName)k).ToString();
+                    return;
                 }
-                var width = ConfigHandler.GetformMainLvColWidth(ref config, key, lvServers.Columns[k].Width);
-                lvServers.Columns[k].Width = width;
+
+                if (config.uiItem.mainSize.IsEmpty)
+                {
+                    return;
+                }
+
+                int w = config.uiItem.mainSize.Width;
+                int h = config.uiItem.mainSize.Height;
+
+                if (!MinimumSize.IsEmpty)
+                {
+                    w = Math.Max(w, MinimumSize.Width);
+                    h = Math.Max(h, MinimumSize.Height);
+                }
+
+                // Apply once before the form is shown to avoid visible "jump".
+                Size = new Size(w, h);
             }
+            catch { }
+        }
+
+        private void RestoreMainLvColumns()
+        {
+            try
+            {
+                if (config?.uiItem == null)
+                {
+                    return;
+                }
+
+                for (int k = 0; k < lvServers.Columns.Count; k++)
+                {
+                    var key = lvServers.Columns[k].Name;
+                    if (Utils.IsNullOrEmpty(key))
+                    {
+                        key = ((EServerColName)k).ToString();
+                    }
+                    var width = ConfigHandler.GetformMainLvColWidth(ref config, key, lvServers.Columns[k].Width);
+                    lvServers.Columns[k].Width = width;
+                }
+            }
+            catch { }
         }
 
         private void StorageUI()
@@ -1313,6 +1359,10 @@ namespace v2rayN.Forms
                     {
                         continue;
                     }
+                    if (item.enabled == false)
+                    {
+                        continue;
+                    }
 
                     var subId = (item.id ?? string.Empty).TrimEx();
                     if (Utils.IsNullOrEmpty(subId))
@@ -1476,7 +1526,7 @@ namespace v2rayN.Forms
             }
             fm.vmessItem = index >= 0 ? lstVmess[index] : null;
             fm.eConfigType = configType;
-            if (fm.ShowDialog() == DialogResult.OK)
+            if (fm.ShowDialog(this) == DialogResult.OK)
             {
                 if (index < 0)
                 {
@@ -1733,7 +1783,7 @@ namespace v2rayN.Forms
         private void OpenOptionSetting()
         {
             var fm = new OptionSettingForm();
-            if (fm.ShowDialog() == DialogResult.OK)
+            if (fm.ShowDialog(this) == DialogResult.OK)
             {
                 RefreshServers();
                 _ = LoadV2ray();
@@ -1748,7 +1798,7 @@ namespace v2rayN.Forms
         private void tsbRoutingSetting_Click(object sender, EventArgs e)
         {
             var fm = new RoutingSettingForm();
-            if (fm.ShowDialog() == DialogResult.OK)
+            if (fm.ShowDialog(this) == DialogResult.OK)
             {
                 RefreshRoutingsMenu();
                 RefreshServers();
@@ -1759,7 +1809,7 @@ namespace v2rayN.Forms
         private void tsbGlobalHotkeySetting_Click(object sender, EventArgs e)
         {
             var fm = new GlobalHotkeySettingForm();
-            fm.ShowDialog();
+            fm.ShowDialog(this);
         }
 
         private void tsbReload_Click(object sender, EventArgs e)
@@ -2292,8 +2342,15 @@ namespace v2rayN.Forms
         #region 订阅
         private void tsbSubSetting_Click(object sender, EventArgs e)
         {
+            // Ensure sub ids are generated and changes are persisted before opening settings dialog.
+            try
+            {
+                ConfigHandler.SaveSubItem(ref config);
+            }
+            catch { }
+
             SubSettingForm fm = new SubSettingForm();
-            if (fm.ShowDialog() == DialogResult.OK)
+            if (fm.ShowDialog(this) == DialogResult.OK)
             {
                 var prefer = _subId;
                 InitSubView(prefer);

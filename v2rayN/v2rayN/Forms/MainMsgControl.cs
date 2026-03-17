@@ -264,7 +264,7 @@ namespace v2rayN.Forms
         {
             menuMsgBoxCopy_Click(null, null);
             var fm = new RoutingSettingForm();
-            fm.ShowDialog();
+            fm.ShowDialog(FindForm());
 
         }
 
@@ -293,7 +293,7 @@ namespace v2rayN.Forms
             var fm = new MsgFilterSetForm();
             fm.MsgFilter = _msgFilter;
             fm.ShowDefFilter = true;
-            if (fm.ShowDialog() == DialogResult.OK)
+            if (fm.ShowDialog(FindForm()) == DialogResult.OK)
             {
                 _msgFilter = fm.MsgFilter;
                 gbMsgTitle.Text = string.Format(ResUI.MsgInformationTitle, _msgFilter);

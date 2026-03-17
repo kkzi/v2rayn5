@@ -40,7 +40,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "BaseForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "BaseForm";
             this.ResumeLayout(false);
 

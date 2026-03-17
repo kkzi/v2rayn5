@@ -109,7 +109,7 @@ namespace v2rayN.Forms
         {
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.Filter = "PNG|*.png";
-            openFileDialog1.ShowDialog();
+            openFileDialog1.ShowDialog(this);
             txtCustomIcon.Text = openFileDialog1.FileName;
 
         }
@@ -123,7 +123,7 @@ namespace v2rayN.Forms
             }
             var fm = new RoutingRuleSettingDetailsForm();
             fm.rulesItem = routingItem.rules[index];
-            if (fm.ShowDialog() == DialogResult.OK)
+            if (fm.ShowDialog(this) == DialogResult.OK)
             {
                 RefreshRoutingsView();
             }
@@ -181,7 +181,7 @@ namespace v2rayN.Forms
         {
             var fm = new RoutingRuleSettingDetailsForm();
             fm.rulesItem = new RulesItem();
-            if (fm.ShowDialog() == DialogResult.OK)
+            if (fm.ShowDialog(this) == DialogResult.OK)
             {
                 routingItem.rules.Insert(0, fm.rulesItem);
                 RefreshRoutingsView();
@@ -268,7 +268,7 @@ namespace v2rayN.Forms
                 Multiselect = false,
                 Filter = "Rules|*.json|All|*.*"
             };
-            if (fileDialog.ShowDialog() != DialogResult.OK)
+            if (fileDialog.ShowDialog(this) != DialogResult.OK)
             {
                 return;
             }

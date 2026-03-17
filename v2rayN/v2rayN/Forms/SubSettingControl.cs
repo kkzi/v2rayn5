@@ -13,10 +13,15 @@ namespace v2rayN.Forms
     {
         public event ChangeEventHandler OnButtonClicked;
 
+        private const int QrCodeExtraHeight = 170;
+        private const int BottomPadding = 8;
+
         public SubItem subItem
         {
             get; set;
         }
+
+        public int CollapsedHeight => grbMain.Height;
 
         public SubSettingControl()
         {
@@ -25,9 +30,39 @@ namespace v2rayN.Forms
 
         private void SubSettingControl_Load(object sender, EventArgs e)
         {
-            Height = grbMain.Height;
+            UpdateCollapsedLayout();
 
             BindingSub();
+        }
+
+        private void UpdateCollapsedLayout()
+        {
+            try
+            {
+                // Calculate minimal group box height to remove excessive blank area.
+                int bottom = 0;
+                Control[] parts =
+                {
+                    txtRemarks, txtUrl, txtUserAgent,
+                    label1, label2, label3,
+                    chkEnabled, btnShare, btnRemove
+                };
+                foreach (var c in parts)
+                {
+                    if (c == null) continue;
+                    bottom = Math.Max(bottom, c.Bottom);
+                }
+
+                grbMain.Height = bottom + BottomPadding;
+                Height = grbMain.Height;
+                picQRCode.Top = grbMain.Height;
+
+                if (Parent != null)
+                {
+                    Parent.Height = Height + Parent.Padding.Bottom;
+                }
+            }
+            catch { }
         }
 
         private void BindingSub()
@@ -76,12 +111,22 @@ namespace v2rayN.Forms
                     return;
                 }
                 picQRCode.Image = QRCodeHelper.GetQRCode(subItem.url);
-                Height = grbMain.Height + 200;
+                Height = grbMain.Height + QrCodeExtraHeight;
             }
             else
             {
                 Height = grbMain.Height;
             }
+
+            // Keep wrapper panel height in sync (SubSettingForm wraps each row in a Panel for spacing).
+            try
+            {
+                if (Parent != null)
+                {
+                    Parent.Height = Height + Parent.Padding.Bottom;
+                }
+            }
+            catch { }
         }
     }
 }

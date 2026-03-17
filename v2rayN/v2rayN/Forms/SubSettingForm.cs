@@ -10,6 +10,7 @@ namespace v2rayN.Forms
     public partial class SubSettingForm : BaseForm
     {
         List<SubSettingControl> lstControls = new List<SubSettingControl>();
+        private const int RowSpacing = 2;
 
         public SubSettingForm()
         {
@@ -18,6 +19,14 @@ namespace v2rayN.Forms
 
         private void SubSettingForm_Load(object sender, EventArgs e)
         {
+            // Reload config from disk to ensure subscriptions created elsewhere (e.g. Ctrl+V in main form)
+            // are visible here even if this dialog is opened later in the same session.
+            try
+            {
+                ConfigHandler.LoadConfig(ref config);
+            }
+            catch { }
+
             if (config.subItem == null)
             {
                 config.subItem = new List<SubItem>();
@@ -54,9 +63,19 @@ namespace v2rayN.Forms
                 control.OnButtonClicked += Control_OnButtonClicked;
                 control.subItem = item;
                 control.Dock = DockStyle.Top;
+                control.Height = control.CollapsedHeight;
 
-                panCon.Controls.Add(control);
-                panCon.Controls.SetChildIndex(control, 0);
+                var rowPanel = new Panel
+                {
+                    Dock = DockStyle.Top,
+                    // Keep a fixed horizontal gutter and fixed vertical spacing between rows.
+                    Padding = new Padding(20, 0, 20, RowSpacing),
+                    Height = control.Height + RowSpacing
+                };
+                rowPanel.Controls.Add(control);
+
+                panCon.Controls.Add(rowPanel);
+                panCon.Controls.SetChildIndex(rowPanel, 0);
 
                 lstControls.Add(control);
             }

@@ -92,7 +92,7 @@ namespace v2rayN.Forms
                 Multiselect = false,
                 Filter = "Config|*.json|YAML|*.yaml;*.yml|All|*.*"
             };
-            if (fileDialog.ShowDialog() != DialogResult.OK)
+            if (fileDialog.ShowDialog(this) != DialogResult.OK)
             {
                 return;
             }

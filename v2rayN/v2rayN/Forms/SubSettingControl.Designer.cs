@@ -61,6 +61,8 @@
             // 
             // txtUserAgent
             // 
+            this.txtUserAgent.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             resources.ApplyResources(this.txtUserAgent, "txtUserAgent");
             this.txtUserAgent.Name = "txtUserAgent";
             this.txtUserAgent.Leave += new System.EventHandler(this.txtRemarks_Leave);
@@ -72,6 +74,7 @@
             // 
             // btnShare
             // 
+            this.btnShare.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             resources.ApplyResources(this.btnShare, "btnShare");
             this.btnShare.Name = "btnShare";
             this.btnShare.UseVisualStyleBackColor = true;
@@ -79,6 +82,7 @@
             // 
             // chkEnabled
             // 
+            this.chkEnabled.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             resources.ApplyResources(this.chkEnabled, "chkEnabled");
             this.chkEnabled.Name = "chkEnabled";
             this.chkEnabled.UseVisualStyleBackColor = true;
@@ -86,6 +90,7 @@
             // 
             // btnRemove
             // 
+            this.btnRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             resources.ApplyResources(this.btnRemove, "btnRemove");
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.UseVisualStyleBackColor = true;
@@ -93,6 +98,8 @@
             // 
             // txtUrl
             // 
+            this.txtUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             resources.ApplyResources(this.txtUrl, "txtUrl");
             this.txtUrl.Name = "txtUrl";
             this.txtUrl.Leave += new System.EventHandler(this.txtRemarks_Leave);

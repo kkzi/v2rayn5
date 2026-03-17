@@ -26,6 +26,18 @@ namespace v2rayN.Handler
         //Action<int, string> _updateFunc;
         public static MainFormHandler Instance => instance.Value;
 
+        private static IWin32Window GetDefaultDialogOwner()
+        {
+            try
+            {
+                return Form.ActiveForm;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public Icon GetNotifyIcon(Config config, Icon def)
         {
             try
@@ -130,7 +142,8 @@ namespace v2rayN.Handler
                 FilterIndex = 2,
                 RestoreDirectory = true
             };
-            if (fileDialog.ShowDialog() != DialogResult.OK)
+            var owner = GetDefaultDialogOwner();
+            if ((owner != null ? fileDialog.ShowDialog(owner) : fileDialog.ShowDialog()) != DialogResult.OK)
             {
                 return;
             }
@@ -170,7 +183,8 @@ namespace v2rayN.Handler
                 FilterIndex = 2,
                 RestoreDirectory = true
             };
-            if (fileDialog.ShowDialog() != DialogResult.OK)
+            var owner = GetDefaultDialogOwner();
+            if ((owner != null ? fileDialog.ShowDialog(owner) : fileDialog.ShowDialog()) != DialogResult.OK)
             {
                 return;
             }
@@ -207,7 +221,8 @@ namespace v2rayN.Handler
                     FilterIndex = 2,
                     RestoreDirectory = true
                 };
-                if (fileDialog.ShowDialog() != DialogResult.OK)
+                var owner = GetDefaultDialogOwner();
+                if ((owner != null ? fileDialog.ShowDialog(owner) : fileDialog.ShowDialog()) != DialogResult.OK)
                 {
                     return;
                 }
@@ -242,7 +257,8 @@ namespace v2rayN.Handler
                 fileDialog.FilterIndex = 2;
                 fileDialog.RestoreDirectory = true;
 
-                if (fileDialog.ShowDialog() == DialogResult.OK)
+                var owner = GetDefaultDialogOwner();
+                if ((owner != null ? fileDialog.ShowDialog(owner) : fileDialog.ShowDialog()) == DialogResult.OK)
                 {
                     fileContent = Utils.LoadResource(fileDialog.FileName);
                 }
