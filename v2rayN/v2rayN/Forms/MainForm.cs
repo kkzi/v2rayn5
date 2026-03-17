@@ -46,8 +46,9 @@ namespace v2rayN.Forms
         public MainForm()
         {
             InitializeComponent();
-            // Main window positioning is handled by config restore logic.
-            StartPosition = FormStartPosition.Manual;
+            // Default to centered startup when no persisted window location is available.
+            // Location will be restored (and clamped on-screen) after guiNConfig.json is loaded.
+            StartPosition = FormStartPosition.CenterScreen;
             // Override BaseForm's FixedSingle to allow resizing the main window.
             FormBorderStyle = FormBorderStyle.Sizable;
             MinimumSize = new Size(1000, 640);
@@ -217,7 +218,7 @@ namespace v2rayN.Forms
 
             // Apply window size before the form is first shown.
             // Use last saved size from guiNConfig.json, clamped to MinimumSize, to avoid visible resize "jump".
-            RestoreWindowSize();
+            RestoreWindowBounds();
 
             // Restore main servers listview column widths to defaults (temporarily).
             // This clears persisted column widths to avoid unexpected layout issues after font changes.
@@ -979,6 +980,76 @@ namespace v2rayN.Forms
                 Size = new Size(w, h);
             }
             catch { }
+        }
+
+        private void RestoreWindowBounds()
+        {
+            RestoreWindowSize();
+            RestoreWindowLocation();
+        }
+
+        private void RestoreWindowLocation()
+        {
+            try
+            {
+                if (config?.uiItem == null)
+                {
+                    return;
+                }
+
+                var loc = config.uiItem.mainLocation;
+
+                // If location was never persisted, keep CenterScreen.
+                if (loc == Point.Empty)
+                {
+                    return;
+                }
+
+                // When a persisted location exists, use Manual positioning and keep the window on-screen.
+                StartPosition = FormStartPosition.Manual;
+                Location = ClampWindowLocationToWorkingArea(loc, Size);
+            }
+            catch { }
+        }
+
+        private static Point ClampWindowLocationToWorkingArea(Point desiredLocation, Size windowSize)
+        {
+            try
+            {
+                var rect = new Rectangle(desiredLocation, windowSize);
+
+                // Prefer a screen where the window rectangle intersects working area.
+                Screen target = null;
+                foreach (var s in Screen.AllScreens)
+                {
+                    if (s == null) continue;
+                    if (s.WorkingArea.IntersectsWith(rect))
+                    {
+                        target = s;
+                        break;
+                    }
+                }
+                target ??= Screen.PrimaryScreen;
+                var wa = target != null ? target.WorkingArea : Screen.GetWorkingArea(rect);
+
+                int maxX = wa.Right - windowSize.Width;
+                int maxY = wa.Bottom - windowSize.Height;
+                int x = desiredLocation.X;
+                int y = desiredLocation.Y;
+
+                // If the window is larger than working area, just pin to top-left of the working area.
+                if (maxX < wa.Left) x = wa.Left;
+                else x = Math.Min(Math.Max(x, wa.Left), maxX);
+
+                if (maxY < wa.Top) y = wa.Top;
+                else y = Math.Min(Math.Max(y, wa.Top), maxY);
+
+                return new Point(x, y);
+            }
+            catch
+            {
+                return desiredLocation;
+            }
         }
 
         private void RestoreMainLvColumns()
