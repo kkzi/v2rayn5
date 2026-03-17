@@ -455,6 +455,11 @@ namespace v2rayN.Forms
             private const int ButtonHeight = 32;
             private const int ButtonWidth = 80;
             private const int DialogHeight = 120;
+            private const int DialogWidth = 420;
+            private const int ButtonSpacing = 12;
+            private const int SidePadding = 14;
+            private const int TopPadding = 14;
+            private const int BottomPadding = 12;
 
             public ExitConfirmDialog(string title, string message, Font ownerFont, Icon ownerIcon)
             {
@@ -464,14 +469,15 @@ namespace v2rayN.Forms
                 MinimizeBox = false;
                 MaximizeBox = false;
                 ShowInTaskbar = false;
-                AutoScaleMode = AutoScaleMode.Dpi;
+                // Keep an exact window size (no autoscale-driven resizing).
+                AutoScaleMode = AutoScaleMode.None;
                 Font = ownerFont ?? Font;
                 if (ownerIcon != null)
                 {
                     Icon = ownerIcon;
                 }
 
-                ClientSize = new Size(420, DialogHeight);
+                Size = new Size(DialogWidth, DialogHeight);
 
                 var txt = new TextBox
                 {
@@ -481,8 +487,10 @@ namespace v2rayN.Forms
                     TabStop = false,
                     Text = message ?? string.Empty,
                     BackColor = SystemColors.Control,
-                    Dock = DockStyle.Fill,
-                    ScrollBars = ScrollBars.None
+                    ScrollBars = ScrollBars.None,
+                    Left = SidePadding,
+                    Top = TopPadding,
+                    Width = ClientSize.Width - SidePadding * 2
                 };
 
                 var btnYes = new Button
@@ -504,45 +512,19 @@ namespace v2rayN.Forms
                 AcceptButton = btnYes;
                 CancelButton = btnNo;
 
-                var buttons = new FlowLayoutPanel
-                {
-                    AutoSize = true,
-                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                    FlowDirection = FlowDirection.LeftToRight,
-                    WrapContents = false,
-                    Margin = Padding.Empty,
-                    Padding = Padding.Empty
-                };
-                buttons.Controls.Add(btnYes);
-                buttons.Controls.Add(btnNo);
+                int buttonsTotalWidth = ButtonWidth * 2 + ButtonSpacing;
+                int buttonsLeft = (ClientSize.Width - buttonsTotalWidth) / 2;
+                int buttonsTop = ClientSize.Height - BottomPadding - ButtonHeight;
+                btnYes.Left = buttonsLeft;
+                btnYes.Top = buttonsTop;
+                btnNo.Left = btnYes.Right + ButtonSpacing;
+                btnNo.Top = buttonsTop;
 
-                var buttonHost = new TableLayoutPanel
-                {
-                    Dock = DockStyle.Fill,
-                    ColumnCount = 3,
-                    RowCount = 1,
-                    Margin = Padding.Empty,
-                    Padding = Padding.Empty
-                };
-                buttonHost.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-                buttonHost.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-                buttonHost.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-                buttonHost.Controls.Add(buttons, 1, 0);
+                txt.Height = Math.Max(0, btnYes.Top - TopPadding - 6);
 
-                var layout = new TableLayoutPanel
-                {
-                    Dock = DockStyle.Fill,
-                    ColumnCount = 1,
-                    RowCount = 2,
-                    Padding = new Padding(14),
-                    Margin = Padding.Empty
-                };
-                layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-                layout.RowStyles.Add(new RowStyle(SizeType.Absolute, ButtonHeight + 16));
-                layout.Controls.Add(txt, 0, 0);
-                layout.Controls.Add(buttonHost, 0, 1);
-
-                Controls.Add(layout);
+                Controls.Add(txt);
+                Controls.Add(btnYes);
+                Controls.Add(btnNo);
             }
 
             private static string GetYesText()
