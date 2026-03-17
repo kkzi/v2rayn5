@@ -190,4 +190,19 @@
   <data name="cmbAllowInsecure.Location" type="System.Drawing.Point, System.Drawing">
     <value>247, 10</value>
   </data>
+  <data name="clbAlpn.Items" xml:space="preserve">
+    <value>h2</value>
+  </data>
+  <data name="clbAlpn.Items1" xml:space="preserve">
+    <value>http/1.1</value>
+  </data>
+  <data name="cmbAllowInsecure.Items" xml:space="preserve">
+    <value />
+  </data>
+  <data name="cmbAllowInsecure.Items1" xml:space="preserve">
+    <value>true</value>
+  </data>
+  <data name="cmbAllowInsecure.Items2" xml:space="preserve">
+    <value>false</value>
+  </data>
 </root>

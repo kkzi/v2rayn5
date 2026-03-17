@@ -182,4 +182,34 @@
   <data name="$this.Text" xml:space="preserve">
     <value>路由规则详情设置</value>
   </data>
+  <data name="clbInboundTag.Items" xml:space="preserve">
+    <value>socks</value>
+  </data>
+  <data name="clbInboundTag.Items1" xml:space="preserve">
+    <value>http</value>
+  </data>
+  <data name="clbInboundTag.Items2" xml:space="preserve">
+    <value>socks2</value>
+  </data>
+  <data name="clbInboundTag.Items3" xml:space="preserve">
+    <value>http2</value>
+  </data>
+  <data name="clbProtocol.Items" xml:space="preserve">
+    <value>http</value>
+  </data>
+  <data name="clbProtocol.Items1" xml:space="preserve">
+    <value>tls</value>
+  </data>
+  <data name="clbProtocol.Items2" xml:space="preserve">
+    <value>bittorrent</value>
+  </data>
+  <data name="cmbOutboundTag.Items" xml:space="preserve">
+    <value>proxy</value>
+  </data>
+  <data name="cmbOutboundTag.Items1" xml:space="preserve">
+    <value>direct</value>
+  </data>
+  <data name="cmbOutboundTag.Items2" xml:space="preserve">
+    <value>block</value>
+  </data>
 </root>

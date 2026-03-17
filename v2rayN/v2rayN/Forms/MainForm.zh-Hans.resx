@@ -378,9 +378,6 @@
   <data name="menuServers.Text" xml:space="preserve">
     <value>服务器</value>
   </data>
-  <data name="menuServers2.ToolTipText" xml:space="preserve">
-    <value>服务器</value>
-  </data>
   <data name="toolStripSeparator13.Size" type="System.Drawing.Size, System.Drawing">
     <value>257, 6</value>
   </data>
@@ -569,5 +566,8 @@
   </data>
   <data name="tsbRestoreGuiNConfig.Text" xml:space="preserve">
     <value>恢复v2rayN配置文件</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>v2rayN</value>
   </data>
 </root>

@@ -312,4 +312,13 @@
   <data name="$this.Text" xml:space="preserve">
     <value>路由设置</value>
   </data>
+  <data name="cmbdomainStrategy.Items" xml:space="preserve">
+    <value>AsIs</value>
+  </data>
+  <data name="cmbdomainStrategy.Items1" xml:space="preserve">
+    <value>IPIfNonMatch</value>
+  </data>
+  <data name="cmbdomainStrategy.Items2" xml:space="preserve">
+    <value>IPOnDemand</value>
+  </data>
 </root>

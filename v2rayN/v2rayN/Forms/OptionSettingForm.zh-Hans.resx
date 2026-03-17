@@ -202,6 +202,21 @@
   <data name="chklogEnabled.Text" xml:space="preserve">
     <value>记录本地日志(默认关闭)</value>
   </data>
+  <data name="cmbloglevel.Items" xml:space="preserve">
+    <value>debug</value>
+  </data>
+  <data name="cmbloglevel.Items1" xml:space="preserve">
+    <value>info</value>
+  </data>
+  <data name="cmbloglevel.Items2" xml:space="preserve">
+    <value>warning</value>
+  </data>
+  <data name="cmbloglevel.Items3" xml:space="preserve">
+    <value>error</value>
+  </data>
+  <data name="cmbloglevel.Items4" xml:space="preserve">
+    <value>none</value>
+  </data>
   <data name="cmbloglevel.Location" type="System.Drawing.Point, System.Drawing">
     <value>257, 174</value>
   </data>
@@ -225,6 +240,18 @@
   </data>
   <data name="tabPage2.Text" xml:space="preserve">
     <value>  Core:DNS设置  </value>
+  </data>
+  <data name="cmbdomainStrategy4Freedom.Items" xml:space="preserve">
+    <value>AsIs</value>
+  </data>
+  <data name="cmbdomainStrategy4Freedom.Items1" xml:space="preserve">
+    <value>UseIP</value>
+  </data>
+  <data name="cmbdomainStrategy4Freedom.Items2" xml:space="preserve">
+    <value>UseIPv4</value>
+  </data>
+  <data name="cmbdomainStrategy4Freedom.Items3" xml:space="preserve">
+    <value>UseIPv6</value>
   </data>
   <data name="cmbdomainStrategy4Freedom.Location" type="System.Drawing.Point, System.Drawing">
     <value>223, 413</value>
@@ -396,5 +423,11 @@
   </data>
   <data name="chkEnableCheckPreReleaseUpdate.Text" xml:space="preserve">
     <value>检查Pre-Release更新(请谨慎启用)</value>
+  </data>
+  <data name="cmbprotocol.Items" xml:space="preserve">
+    <value>socks</value>
+  </data>
+  <data name="cmbprotocol.Items1" xml:space="preserve">
+    <value>http</value>
   </data>
 </root>

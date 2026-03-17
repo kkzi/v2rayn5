@@ -272,4 +272,7 @@
   <data name="labCoreType.Text" xml:space="preserve">
     <value>Core类型</value>
   </data>
+  <data name="cmbSecurity5.Items" xml:space="preserve">
+    <value>none</value>
+  </data>
 </root>

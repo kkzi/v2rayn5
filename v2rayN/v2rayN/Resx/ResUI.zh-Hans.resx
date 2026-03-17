@@ -216,9 +216,6 @@
   <data name="LvServiceType" xml:space="preserve">
     <value>类型</value>
   </data>
-  <data name="LvSubscription" xml:space="preserve">
-    <value>订阅</value>
-  </data>
   <data name="LvTestResults" xml:space="preserve">
     <value>测试结果</value>
   </data>
@@ -276,9 +273,6 @@
   <data name="MsgUpdateV2rayCoreSuccessfullyMore" xml:space="preserve">
     <value>更新Core成功！正在重启服务...</value>
   </data>
-  <data name="NeedHttpGlobalProxy" xml:space="preserve">
-    <value>此功能依赖Http全局代理,请先设置正确。</value>
-  </data>
   <data name="NonvmessOrssProtocol" xml:space="preserve">
     <value>非VMess或ss协议</value>
   </data>
@@ -317,9 +311,6 @@
   </data>
   <data name="SaveServerConfigurationIn" xml:space="preserve">
     <value>服务端配置文件保存在:{0}</value>
-  </data>
-  <data name="SpeedServerTips" xml:space="preserve">
-    <value>注意：此功能依赖Http全局代理!测试完成后,请手工调整Http全局代理和活动节点。</value>
   </data>
   <data name="StartService" xml:space="preserve">
     <value>启动服务({0})...</value>

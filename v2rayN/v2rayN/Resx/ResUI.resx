@@ -216,9 +216,6 @@
   <data name="LvServiceType" xml:space="preserve">
     <value>Type</value>
   </data>
-  <data name="LvSubscription" xml:space="preserve">
-    <value>Subs</value>
-  </data>
   <data name="LvTestResults" xml:space="preserve">
     <value>Test Results</value>
   </data>
@@ -276,9 +273,6 @@
   <data name="MsgUpdateV2rayCoreSuccessfullyMore" xml:space="preserve">
     <value>Update Core successfully! Restarting service...</value>
   </data>
-  <data name="NeedHttpGlobalProxy" xml:space="preserve">
-    <value> This feature relies on the Http global proxy, please set it correctly first.</value>
-  </data>
   <data name="NonvmessOrssProtocol" xml:space="preserve">
     <value>Non-VMess or ss protocol</value>
   </data>
@@ -317,9 +311,6 @@
   </data>
   <data name="SaveServerConfigurationIn" xml:space="preserve">
     <value>The server configuration file is saved at: {0}</value>
-  </data>
-  <data name="SpeedServerTips" xml:space="preserve">
-    <value>Note: This feature relies on the Http global proxy. Please manually adjust the Http global proxy and active node after testing.</value>
   </data>
   <data name="StartService" xml:space="preserve">
     <value>Start service ({0})...</value>

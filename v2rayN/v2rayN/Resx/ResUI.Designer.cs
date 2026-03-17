@@ -421,15 +421,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Subs 的本地化字符串。
-        /// </summary>
-        internal static string LvSubscription {
-            get {
-                return ResourceManager.GetString("LvSubscription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Test Results 的本地化字符串。
         /// </summary>
         internal static string LvTestResults {
@@ -664,15 +655,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似  This feature relies on the Http global proxy, please set it correctly first. 的本地化字符串。
-        /// </summary>
-        internal static string NeedHttpGlobalProxy {
-            get {
-                return ResourceManager.GetString("NeedHttpGlobalProxy", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Normal use of this version requires .NET Framework 4.8 的本地化字符串。
         /// </summary>
         internal static string NetFrameworkRequirementsTip {
@@ -851,16 +833,8 @@ namespace v2rayN.Resx {
                 return ResourceManager.GetString("SaveServerConfigurationIn", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   查找类似 Note: This feature relies on the Http global proxy. Please manually adjust the Http global proxy and active node after testing. 的本地化字符串。
-        /// </summary>
-        internal static string SpeedServerTips {
-            get {
-                return ResourceManager.GetString("SpeedServerTips", resourceCulture);
-            }
-        }
-        
+
+
         /// <summary>
         ///   查找类似 Speed Test... 的本地化字符串。
         /// </summary>
