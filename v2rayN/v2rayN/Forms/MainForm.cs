@@ -481,7 +481,8 @@ namespace v2rayN.Forms
                     Icon = ownerIcon;
                 }
 
-                ClientSize = new Size(DialogWidth, DialogHeight);
+                // Force outer window size (not client size) to match the requested pixel dimensions.
+                Size = new Size(DialogWidth, DialogHeight);
                 MinimumSize = Size;
                 MaximumSize = Size;
 
@@ -531,7 +532,7 @@ namespace v2rayN.Forms
                 try
                 {
                     // Re-apply after handle creation to make the size/positions deterministic.
-                    ClientSize = new Size(DialogWidth, DialogHeight);
+                    Size = new Size(DialogWidth, DialogHeight);
                     MinimumSize = Size;
                     MaximumSize = Size;
                     ApplyFixedLayout();
