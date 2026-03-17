@@ -135,9 +135,6 @@
   <data name="Downloading" xml:space="preserve">
     <value>Downloading...</value>
   </data>
-  <data name="downloadSpeed" xml:space="preserve">
-    <value>Download</value>
-  </data>
   <data name="DownloadYesNo" xml:space="preserve">
     <value>Whether to download? {0}</value>
   </data>
@@ -228,12 +225,6 @@
   <data name="LvTransportProtocol" xml:space="preserve">
     <value>Transport</value>
   </data>
-  <data name="MediumFresh" xml:space="preserve">
-    <value>Medium</value>
-  </data>
-  <data name="MsgClearSubscription" xml:space="preserve">
-    <value>Clear original subscription content</value>
-  </data>
   <data name="MsgDownloadV2rayCoreSuccessfully" xml:space="preserve">
     <value>Download Core successfully</value>
   </data>
@@ -246,26 +237,14 @@
   <data name="MsgNoValidSubscription" xml:space="preserve">
     <value>No valid subscriptions set</value>
   </data>
-  <data name="MsgPACUpdateFailed" xml:space="preserve">
-    <value>PAC update failed</value>
-  </data>
-  <data name="MsgPACUpdateSuccessfully" xml:space="preserve">
-    <value>PAC update succeeded</value>
-  </data>
   <data name="MsgParsingSuccessfully" xml:space="preserve">
     <value>Resolve {0} successfully</value>
-  </data>
-  <data name="MsgSimplifyPAC" xml:space="preserve">
-    <value>Simplify PAC Success</value>
   </data>
   <data name="MsgStartGettingSubscriptions" xml:space="preserve">
     <value>Start getting subscriptions</value>
   </data>
   <data name="MsgStartUpdating" xml:space="preserve">
     <value>Start updating {0}...</value>
-  </data>
-  <data name="MsgStartUpdatingPAC" xml:space="preserve">
-    <value>Start updating PAC...</value>
   </data>
   <data name="MsgSubscriptionDecodingFailed" xml:space="preserve">
     <value>Invalid subscription content</value>
@@ -315,9 +294,6 @@
   <data name="PleaseSelectServer" xml:space="preserve">
     <value>Please select the server first</value>
   </data>
-  <data name="QuickFresh" xml:space="preserve">
-    <value>Fast</value>
-  </data>
   <data name="RemoveDuplicateServerResult" xml:space="preserve">
     <value>Servers deduplication completed. Old: {0}, New: {1}.</value>
   </data>
@@ -330,14 +306,8 @@
   <data name="SaveServerConfigurationIn" xml:space="preserve">
     <value>The server configuration file is saved at: {0}</value>
   </data>
-  <data name="SlowFresh" xml:space="preserve">
-    <value>Slow</value>
-  </data>
   <data name="SpeedServerTips" xml:space="preserve">
     <value>Note: This feature relies on the Http global proxy. Please manually adjust the Http global proxy and active node after testing.</value>
-  </data>
-  <data name="StartPacFailed" xml:space="preserve">
-    <value>PAC failed to start. Please run this program as Administrator.</value>
   </data>
   <data name="StartService" xml:space="preserve">
     <value>Start service ({0})...</value>
@@ -369,9 +339,6 @@
   </data>
   <data name="RoutingRuleDetailRequiredTips" xml:space="preserve">
     <value>{0},One of the required.</value>
-  </data>
-  <data name="LvRemarks" xml:space="preserve">
-    <value>remarks</value>
   </data>
   <data name="LvUrl" xml:space="preserve">
     <value>Url</value>
@@ -446,10 +413,10 @@
     <value>Global hotkey {0} registered successfully</value>
   </data>
   <data name="UngroupedServers" xml:space="preserve">
-    <value>Ungrouped</value>
+    <value>Others</value>
   </data>
-  <data name="AllGroupServers" xml:space="preserve">
-    <value>All servers</value>
+  <data name="PleaseSwitchToSubscriptionTabToUpdate" xml:space="preserve">
+    <value>Current tab is Others. Please switch to a subscription tab to update.</value>
   </data>
   <data name="FillServerAddressCustom" xml:space="preserve">
     <value>Please browse to import server configuration</value>
@@ -468,12 +435,6 @@
   </data>
   <data name="LabLocal" xml:space="preserve">
     <value>Local</value>
-  </data>
-  <data name="MsgServerTitle" xml:space="preserve">
-    <value>Servers (Filter : {0})</value>
-  </data>
-  <data name="ServerFilterPlaceholder" xml:space="preserve">
-    <value>Filter servers</value>
   </data>
   <data name="NetFrameworkRequirementsTip" xml:space="preserve">
     <value>Normal use of this version requires .NET Framework 4.8</value>

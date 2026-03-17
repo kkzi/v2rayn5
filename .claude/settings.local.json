@@ -8,7 +8,8 @@
       "Bash(echo:*)",
       "Bash(dotnet:*)",
       "Bash(ls:*)",
-      "Bash(file:*)"
+      "Bash(file:*)",
+      "Bash(Get-Content 'D:\\\\Code\\\\v2rayn\\\\v2rayN\\\\v2rayN\\\\v2rayN\\\\Forms\\\\OptionSettingForm.resx' | Select-String -Pattern '\\(Location|Size|>>\\)' | Select-Object -First 80)"
     ]
   }
 }

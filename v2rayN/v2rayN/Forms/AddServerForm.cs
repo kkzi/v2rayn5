@@ -18,8 +18,7 @@ namespace v2rayN.Forms
         {
             Text = (eConfigType).ToString();
             
-            cmbCoreType.Items.AddRange(Global.coreTypes.ToArray());
-            cmbCoreType.Items.Add(string.Empty);
+            InitCoreTypeComboBox(cmbCoreType);
 
             switch (eConfigType)
             {
@@ -67,7 +66,7 @@ namespace v2rayN.Forms
             {
                 vmessItem = new VmessItem
                 {
-                    groupId = groupId
+                    subid = string.Empty
                 };
                 ClearServer();
             }
@@ -108,7 +107,7 @@ namespace v2rayN.Forms
                     break;
             }
 
-            cmbCoreType.Text = vmessItem.coreType == null ? string.Empty : vmessItem.coreType.ToString();
+            SetCoreTypeText(cmbCoreType, vmessItem.coreType);
 
             transportControl.BindingServer(vmessItem);
         }
@@ -229,14 +228,7 @@ namespace v2rayN.Forms
             vmessItem.alterId = Utils.ToInt(alterId);
             vmessItem.security = security;
 
-            if (Utils.IsNullOrEmpty(cmbCoreType.Text))
-            {
-                vmessItem.coreType = null;
-            }
-            else
-            {
-                vmessItem.coreType = (ECoreType)Enum.Parse(typeof(ECoreType), cmbCoreType.Text);
-            }
+            vmessItem.coreType = ParseCoreType(cmbCoreType.Text);
 
             int ret = -1;
             switch (eConfigType)
@@ -260,14 +252,7 @@ namespace v2rayN.Forms
                     break;
             }
 
-            if (ret == 0)
-            {
-                DialogResult = DialogResult.OK;
-            }
-            else
-            {
-                UI.ShowWarning(ResUI.OperationFailed);
-            }
+            HandleResult(ret);
 
         }
 
@@ -279,7 +264,7 @@ namespace v2rayN.Forms
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
     }
 }

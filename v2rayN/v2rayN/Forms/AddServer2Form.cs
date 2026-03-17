@@ -19,16 +19,7 @@ namespace v2rayN.Forms
 
         private void AddServer2Form_Load(object sender, EventArgs e)
         {
-            List<string> coreTypes = new List<string>();
-            foreach (ECoreType it in Enum.GetValues(typeof(ECoreType)))
-            {
-                if (it == ECoreType.v2rayN)
-                    continue;
-                coreTypes.Add(it.ToString());
-            }
-
-            cmbCoreType.Items.AddRange(coreTypes.ToArray());
-            cmbCoreType.Items.Add(string.Empty);
+            InitCoreTypeComboBox(cmbCoreType, excludeV2rayN: true);
 
             txtAddress.ReadOnly = true;
             if (vmessItem != null)
@@ -39,7 +30,7 @@ namespace v2rayN.Forms
             {
                 vmessItem = new VmessItem
                 {
-                    groupId = groupId
+                    subid = string.Empty
                 };
                 ClearServer();
             }
@@ -54,7 +45,7 @@ namespace v2rayN.Forms
             txtAddress.Text = vmessItem.address;
             txtPreSocksPort.Text = vmessItem.preSocksPort.ToString();
 
-            cmbCoreType.Text = vmessItem.coreType == null ? string.Empty : vmessItem.coreType.ToString();
+            SetCoreTypeText(cmbCoreType, vmessItem.coreType);
         }
 
 
@@ -82,23 +73,9 @@ namespace v2rayN.Forms
             vmessItem.remarks = remarks;
             vmessItem.preSocksPort = Utils.ToInt(txtPreSocksPort.Text);
 
-            if (Utils.IsNullOrEmpty(cmbCoreType.Text))
-            {
-                vmessItem.coreType = null;
-            }
-            else
-            {
-                vmessItem.coreType = (ECoreType)Enum.Parse(typeof(ECoreType), cmbCoreType.Text);
-            }
+            vmessItem.coreType = ParseCoreType(cmbCoreType.Text);
 
-            if (ConfigHandler.EditCustomServer(ref config, vmessItem) == 0)
-            {
-                DialogResult = DialogResult.OK;
-            }
-            else
-            {
-                UI.ShowWarning(ResUI.OperationFailed);
-            }
+            HandleResult(ConfigHandler.EditCustomServer(ref config, vmessItem));
         }
 
         private void btnClose_Click(object sender, EventArgs e)

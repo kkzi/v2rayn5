@@ -35,7 +35,7 @@ namespace v2rayN.Forms
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
 
         private void btnFilderProxy_Click(object sender, EventArgs e)

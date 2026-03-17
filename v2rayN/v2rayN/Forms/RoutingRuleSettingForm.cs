@@ -44,21 +44,18 @@ namespace v2rayN.Forms
             lvRoutings.BeginUpdate();
             lvRoutings.Items.Clear();
 
-            lvRoutings.GridLines = true;
-            lvRoutings.FullRowSelect = true;
-            lvRoutings.View = View.Details;
-            lvRoutings.MultiSelect = true;
-            lvRoutings.HeaderStyle = ColumnHeaderStyle.Clickable;
+            InitListView(lvRoutings, new (string name, int width)[]
+            {
+                ("", 30),
+                ("outboundTag", 80),
+                ("port", 80),
+                ("protocol", 80),
+                ("inboundTag", 80),
+                ("domain", 160),
+                ("ip", 160),
+                ("enable", 60)
+            });
             lvRoutings.RegisterDragEvent(UpdateDragEventHandler);
-
-            lvRoutings.Columns.Add("", 30);
-            lvRoutings.Columns.Add("outboundTag", 80);
-            lvRoutings.Columns.Add("port", 80);
-            lvRoutings.Columns.Add("protocol", 80);
-            lvRoutings.Columns.Add("inboundTag", 80);
-            lvRoutings.Columns.Add("domain", 160);
-            lvRoutings.Columns.Add("ip", 160);
-            lvRoutings.Columns.Add("enable", 60);
 
             lvRoutings.EndUpdate();
         }
@@ -101,19 +98,12 @@ namespace v2rayN.Forms
             routingItem.url = txtUrl.Text.Trim();
             routingItem.customIcon = txtCustomIcon.Text.Trim();
 
-            if (ConfigHandler.AddRoutingItem(ref config, routingItem, EditIndex) == 0)
-            {
-                DialogResult = DialogResult.OK;
-            }
-            else
-            {
-                UI.ShowWarning(ResUI.OperationFailed);
-            }
+            HandleResult(ConfigHandler.AddRoutingItem(ref config, routingItem, EditIndex));
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
         private void btnBrowse_Click(object sender, EventArgs e)
         {
@@ -141,27 +131,7 @@ namespace v2rayN.Forms
 
         private int GetLvSelectedIndex()
         {
-            int index = -1;
-            lvSelecteds.Clear();
-            try
-            {
-                if (lvRoutings.SelectedIndices.Count <= 0)
-                {
-                    UI.Show(ResUI.PleaseSelectRules);
-                    return index;
-                }
-
-                index = lvRoutings.SelectedIndices[0];
-                foreach (int i in lvRoutings.SelectedIndices)
-                {
-                    lvSelecteds.Add(i);
-                }
-                return index;
-            }
-            catch
-            {
-                return index;
-            }
+            return GetLvSelectedIndex(lvRoutings, lvSelecteds);
         }
 
         #region Edit function

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+
 using v2rayN.Forms;
 using v2rayN.Tool;
 
@@ -56,6 +59,20 @@ namespace v2rayN
                             return;
                         }
                     }
+
+                    var current = Process.GetCurrentProcess();
+                    var existing = Process.GetProcessesByName(current.ProcessName)
+                        .FirstOrDefault(p => p.Id != current.Id);
+                    if (existing != null)
+                    {
+                        var hwnd2 = existing.MainWindowHandle;
+                        if (hwnd2 != IntPtr.Zero && Utils.IsWindow(hwnd2))
+                        {
+                            Utils.ShowWindow(hwnd2, 4);
+                            Utils.SwitchToThisWindow(hwnd2, true);
+                            return;
+                        }
+                    }
                 }
                 catch { }
                 UI.ShowWarning($"v2rayN is already running(v2rayN已经运行)");
@@ -89,10 +106,8 @@ namespace v2rayN
         /// </summary> 
         public static bool IsDuplicateInstance()
         {
-            //string name = "v2rayN";
-
-            string name = Utils.GetExePath(); // Allow different locations to run
-            name = name.Replace("\\", "/"); // https://stackoverflow.com/questions/20714120/could-not-find-a-part-of-the-path-error-while-creating-mutex
+            // Only allow a single v2rayN instance by process name (regardless of exe path).
+            string name = "v2rayN";
 
             Global.mutexObj = new Mutex(false, name, out bool bCreatedNew);
             return !bCreatedNew;

@@ -204,11 +204,6 @@ namespace v2rayN.Mode
             get; set;
         }
 
-        public List<GroupItem> groupItem
-        {
-            get; set;
-        }
-
         public List<CoreTypeItem> coreTypeItem
         {
             get; set;
@@ -273,14 +268,6 @@ namespace v2rayN.Mode
             return false;
         }
 
-        public string GetGroupRemarks(string groupId)
-        {
-            if (string.IsNullOrEmpty(groupId))
-            {
-                return string.Empty;
-            }
-            return groupItem.Where(it => it.id == groupId).FirstOrDefault()?.remarks;
-        }
 
         #endregion
 
@@ -310,7 +297,6 @@ namespace v2rayN.Mode
             testResult = string.Empty;
             subid = string.Empty;
             flow = string.Empty;
-            groupId = string.Empty;
         }
 
         #region function
@@ -364,21 +350,6 @@ namespace v2rayN.Mode
             }
             return subid.Substring(0, 4);
         }
-        public string GetGroupRemarks(Config config)
-        {
-            string subRemarks = string.Empty;
-            if (Utils.IsNullOrEmpty(groupId))
-            {
-                return subRemarks;
-            }
-            var group = config.groupItem.FirstOrDefault(t => t.id == groupId);
-            if (group != null)
-            {
-                return group.remarks;
-            }
-            return groupId.Substring(0, 4);
-        }
-
         public List<string> GetAlpn()
         {
             if (alpn != null && alpn.Count > 0)
@@ -559,11 +530,6 @@ namespace v2rayN.Mode
             get; set;
         }
 
-        public string groupId
-        {
-            get; set;
-        } = string.Empty;
-
         public ECoreType? coreType
         {
             get; set;
@@ -712,10 +678,6 @@ namespace v2rayN.Mode
             get; set;
         } = string.Empty;
 
-        public string groupId
-        {
-            get; set;
-        } = string.Empty;
     }
 
     [Serializable]
@@ -742,6 +704,11 @@ namespace v2rayN.Mode
         {
             get; set;
         }
+
+        public string mainSelectedSubId
+        {
+            get; set;
+        } = string.Empty;
     }
 
     [Serializable]
@@ -781,31 +748,6 @@ namespace v2rayN.Mode
         public Keys? KeyCode { get; set; }
 
     }
-
-    [Serializable]
-    public class GroupItem
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        public string id
-        {
-            get; set;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string remarks
-        {
-            get; set;
-        }
-        public int sort
-        {
-            get; set;
-        }
-    }
-
 
     [Serializable]
     public class CoreTypeItem

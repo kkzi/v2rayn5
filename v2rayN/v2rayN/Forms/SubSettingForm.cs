@@ -69,19 +69,12 @@ namespace v2rayN.Forms
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            if (ConfigHandler.SaveSubItem(ref config) == 0)
-            {
-                DialogResult = DialogResult.OK;
-            }
-            else
-            {
-                UI.ShowWarning(ResUI.OperationFailed);
-            }
+            HandleResult(ConfigHandler.SaveSubItem(ref config));
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)

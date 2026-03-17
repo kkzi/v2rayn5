@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using v2rayN.Base;
 using v2rayN.Handler;
 using v2rayN.Mode;
 using v2rayN.Resx;
@@ -16,11 +17,13 @@ namespace v2rayN.Forms
 {
     public partial class MainForm : BaseForm
     {
+        private const string UnsubscribedTabId = "__unsubscribed__";
+
         private V2rayHandler v2rayHandler;
         private List<VmessItem> lstSelecteds = new List<VmessItem>();
         private StatisticsHandler statistics;
         private List<VmessItem> lstVmess;
-        private string _groupId = string.Empty;
+        private string _subId = UnsubscribedTabId;
         private string serverFilter = string.Empty;
         private bool _isLogHidden;
         private int logPanelSplitterDistance;
@@ -34,19 +37,26 @@ namespace v2rayN.Forms
             mainMsgControl.SysProxySelected += mainMsgControl_SysProxySelected;
             mainMsgControl.RoutingSelected += MainMsgControl_RoutingSelected;
             mainMsgControl.ToggleLogRequested += MainMsgControl_ToggleLogRequested;
+            mainMsgControl.OptionSettingRequested += (s, e) => OpenOptionSetting();
             KeyPreview = true;
 
-            // 设置工具栏图标和文本间距为1px（默认约2px，额外减少1px）
-            const int extraGap = -1;
-            tsMain.Renderer = new ToolStripGapRenderer(extraGap);
+            ApplyCompactToolStripStyle(tsMain);
+            tsMain.ImageScalingSize = new Size(16, 16);
+            tsMain.Padding = Padding.Empty;
             foreach (ToolStripItem item in tsMain.Items)
             {
-                if (item.DisplayStyle == ToolStripItemDisplayStyle.ImageAndText && item.Image != null)
+                item.AutoSize = true;
+                item.Margin = Padding.Empty;
+                item.Padding = new Padding(2, 1, 2, 1);
+                if (item is ToolStripDropDownButton ddb)
                 {
-                    var p = item.Padding;
-                    item.Padding = new Padding(p.Left, p.Top, p.Right + extraGap, p.Bottom);
-                    item.ImageAlign = ContentAlignment.MiddleLeft;
-                    item.TextAlign = ContentAlignment.MiddleLeft;
+                    ddb.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                    ddb.TextImageRelation = TextImageRelation.ImageBeforeText;
+                }
+                else if (item is ToolStripButton btn)
+                {
+                    btn.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                    btn.TextImageRelation = TextImageRelation.ImageBeforeText;
                 }
             }
 
@@ -57,6 +67,34 @@ namespace v2rayN.Forms
             {
                 MyAppExit(false);
             };
+        }
+
+        private static void ApplyCompactToolStripStyle(ToolStrip toolStrip)
+        {
+            if (toolStrip == null) return;
+
+            toolStrip.Padding = new Padding(0);
+
+            foreach (ToolStripItem item in toolStrip.Items)
+            {
+                if (item == null) continue;
+
+                item.Margin = new Padding(0);
+
+                if (item is ToolStripSeparator)
+                {
+                    item.Margin = new Padding(2, 0, 2, 0);
+                    continue;
+                }
+
+                if (item.DisplayStyle == ToolStripItemDisplayStyle.ImageAndText)
+                {
+                    item.Padding = new Padding(2, 1, 2, 1);
+                    item.ImageAlign = ContentAlignment.MiddleLeft;
+                    item.TextAlign = ContentAlignment.MiddleLeft;
+                    item.TextImageRelation = TextImageRelation.ImageBeforeText;
+                }
+            }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -82,19 +120,24 @@ namespace v2rayN.Forms
         private void MainForm_VisibleChanged(object sender, EventArgs e)
         {
             if (statistics == null || !statistics.Enable) return;
-            if ((sender as Form).Visible)
-            {
-                statistics.UpdateUI = true;
-            }
-            else
-            {
-                statistics.UpdateUI = false;
-            }
+            statistics.UpdateUI = ((Form)sender).Visible;
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            InitGroupView();
+            var exitPreferSubId = config?.uiItem?.mainSelectedSubId ?? string.Empty;
+            var activePreferSubId = GetActiveServerTabId() ?? string.Empty;
+
+            if (Utils.IsNullOrEmpty(activePreferSubId))
+            {
+                // No active server: restore last selected tab if possible; otherwise fallback to first tab.
+                InitSubView(exitPreferSubId, string.Empty);
+            }
+            else
+            {
+                // Prefer active server's tab; fallback to last selected; otherwise fallback to first tab.
+                InitSubView(activePreferSubId, exitPreferSubId);
+            }
             InitServersView();
             RefreshServers();
             RefreshRoutingsMenu();
@@ -113,6 +156,8 @@ namespace v2rayN.Forms
                 }
             }
 
+            UpdateWindowHwndInRegistry();
+
             MainFormHandler.Instance.UpdateTask(config, UpdateTaskHandler);
             MainFormHandler.Instance.RegisterGlobalHotkey(config, OnHotkeyHandler, UpdateTaskHandler);
 
@@ -128,16 +173,93 @@ namespace v2rayN.Forms
             _isLogHidden = false;
             mainMsgControl.SetLogToggleState(true);
             mainMsgControl.SetLogTextVisible(true);
+
+            lvServers.Focus();
+        }
+
+        private string GetActiveServerTabId()
+        {
+            try
+            {
+                var active = config?.vmess?.FirstOrDefault(it => it != null && it.indexId == config.indexId);
+                if (active == null)
+                {
+                    return string.Empty;
+                }
+                return Utils.IsNullOrEmpty(active.subid) ? UnsubscribedTabId : active.subid;
+            }
+            catch { }
+            return string.Empty;
+        }
+
+        private void UpdateWindowHwndInRegistry()
+        {
+            try
+            {
+                if (IsHandleCreated)
+                {
+                    Utils.RegWriteValue(Global.MyRegPath, Utils.WindowHwndKey, Convert.ToString((long)Handle));
+                }
+            }
+            catch { }
         }
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.Alt && !e.Control && !e.Shift)
+            {
+                if (TrySwitchToTabByAltDigit(e.KeyCode))
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    return;
+                }
+            }
             if (e.Control && e.KeyCode == Keys.F)
             {
-                menuServerFilter_Click(null, null);
+                FocusServerFilter();
                 e.Handled = true;
                 e.SuppressKeyPress = true;
             }
+        }
+
+        private bool TrySwitchToTabByAltDigit(Keys keyCode)
+        {
+            int index = -1;
+            if (keyCode >= Keys.D1 && keyCode <= Keys.D9)
+            {
+                index = (int)keyCode - (int)Keys.D1;
+            }
+            else if (keyCode >= Keys.NumPad1 && keyCode <= Keys.NumPad9)
+            {
+                index = (int)keyCode - (int)Keys.NumPad1;
+            }
+
+            if (index < 0)
+            {
+                return false;
+            }
+            if (tabGroup == null || tabGroup.TabPages == null)
+            {
+                return false;
+            }
+            if (index >= tabGroup.TabPages.Count)
+            {
+                return false;
+            }
+
+            tabGroup.SelectedIndex = index;
+            return true;
+        }
+
+        private void FocusServerFilter()
+        {
+            try
+            {
+                txtServerFilter.Focus();
+                txtServerFilter.SelectAll();
+            }
+            catch { }
         }
 
         private void MainMsgControl_ToggleLogRequested(object sender, EventArgs e)
@@ -214,18 +336,6 @@ namespace v2rayN.Forms
         {
             scServers.Panel2Collapsed = true;
 
-            //if (!config.uiItem.mainLocation.IsEmpty)
-            //{
-            //    if (config.uiItem.mainLocation.X >= SystemInformation.WorkingArea.Width
-            //        || config.uiItem.mainLocation.Y >= SystemInformation.WorkingArea.Height)
-            //    {
-            //        Location = new Point(0, 0);
-            //    }
-            //    else
-            //    {
-            //        Location = config.uiItem.mainLocation;
-            //    }
-            //}
             if (!config.uiItem.mainSize.IsEmpty)
             {
                 Width = config.uiItem.mainSize.Width;
@@ -235,7 +345,12 @@ namespace v2rayN.Forms
 
             for (int k = 0; k < lvServers.Columns.Count; k++)
             {
-                var width = ConfigHandler.GetformMainLvColWidth(ref config, ((EServerColName)k).ToString(), lvServers.Columns[k].Width);
+                var key = lvServers.Columns[k].Name;
+                if (Utils.IsNullOrEmpty(key))
+                {
+                    key = ((EServerColName)k).ToString();
+                }
+                var width = ConfigHandler.GetformMainLvColWidth(ref config, key, lvServers.Columns[k].Width);
                 lvServers.Columns[k].Width = width;
             }
         }
@@ -245,10 +360,16 @@ namespace v2rayN.Forms
             config.uiItem.mainLocation = Location;
 
             config.uiItem.mainSize = new Size(Width, Height);
+            config.uiItem.mainSelectedSubId = _subId;
 
             for (int k = 0; k < lvServers.Columns.Count; k++)
             {
-                ConfigHandler.AddformMainLvColWidth(ref config, ((EServerColName)k).ToString(), lvServers.Columns[k].Width);
+                var key = lvServers.Columns[k].Name;
+                if (Utils.IsNullOrEmpty(key))
+                {
+                    key = ((EServerColName)k).ToString();
+                }
+                ConfigHandler.AddformMainLvColWidth(ref config, key, lvServers.Columns[k].Width);
             }
         }
 
@@ -291,19 +412,66 @@ namespace v2rayN.Forms
         /// </summary>
         private void RefreshServers()
         {
+            if (EnsureValidSubSelection())
+            {
+                return;
+            }
+
             lstVmess = config.vmess
-                .Where(it => Utils.IsNullOrEmpty(_groupId) || it.groupId == _groupId)
-                .Where(it => Utils.IsNullOrEmpty(serverFilter) || (it.remarks ?? string.Empty).Contains(serverFilter))
+                .Where(IsVmessVisibleInCurrentTab)
+                .Where(it =>
+                    Utils.IsNullOrEmpty(serverFilter)
+                    || (it.remarks ?? string.Empty).IndexOf(serverFilter, StringComparison.OrdinalIgnoreCase) >= 0)
                 .OrderBy(it => it.sort)
                 .ToList();
 
-            ConfigHandler.SetDefaultServer(config, lstVmess);
+            // Do not change default node when switching tabs/filters.
+            ConfigHandler.SetDefaultServer(config, config.vmess);
             BeginInvoke(new Action(() =>
             {
                 RefreshServersView();
             }));
 
             RefreshServersMenu();
+        }
+
+        private bool EnsureValidSubSelection()
+        {
+            try
+            {
+                if (tabGroup.TabPages.Count <= 0)
+                {
+                    _subId = UnsubscribedTabId;
+                    return false;
+                }
+
+                if (Utils.IsNullOrEmpty(_subId))
+                {
+                    SelectFirstTab();
+                    return true;
+                }
+
+                if (tabGroup.TabPages.Cast<TabPage>().All(t => t.Name != _subId))
+                {
+                    SelectFirstTab();
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        private bool IsVmessVisibleInCurrentTab(VmessItem item)
+        {
+            if (item == null)
+            {
+                return false;
+            }
+            if (_subId == UnsubscribedTabId)
+            {
+                return Utils.IsNullOrEmpty(item.subid);
+            }
+            return item.subid == _subId;
         }
 
         /// <summary>
@@ -313,6 +481,7 @@ namespace v2rayN.Forms
         {
             lvServers.BeginUpdate();
             lvServers.Items.Clear();
+            lvServers.Columns.Clear();
 
             lvServers.GridLines = true;
             lvServers.FullRowSelect = true;
@@ -322,25 +491,38 @@ namespace v2rayN.Forms
             lvServers.HeaderStyle = ColumnHeaderStyle.Clickable;
             lvServers.RegisterDragEvent(UpdateDragEventHandler);
 
-            lvServers.Columns.Add("", 30);
-            lvServers.Columns.Add(ResUI.LvServiceType, 80);
-            lvServers.Columns.Add(ResUI.LvAlias, 100);
-            lvServers.Columns.Add(ResUI.LvAddress, 120);
-            lvServers.Columns.Add(ResUI.LvPort, 100);
-            lvServers.Columns.Add(ResUI.LvEncryptionMethod, 120);
-            lvServers.Columns.Add(ResUI.LvTransportProtocol, 120);
-            lvServers.Columns.Add(ResUI.LvTLS, 100);
-            lvServers.Columns.Add(ResUI.LvSubscription, 100);
-            lvServers.Columns.Add(ResUI.LvTestResults, 120, HorizontalAlignment.Right);
+            AddServerColumn(EServerColName.def, string.Empty, 30);
+            AddServerColumn(EServerColName.configType, ResUI.LvServiceType, 80);
+            AddServerColumn(EServerColName.remarks, ResUI.LvAlias, 100);
+            AddServerColumn(EServerColName.address, ResUI.LvAddress, 120);
+            AddServerColumn(EServerColName.port, ResUI.LvPort, 100);
+            AddServerColumn(EServerColName.security, ResUI.LvEncryptionMethod, 120);
+            AddServerColumn(EServerColName.network, ResUI.LvTransportProtocol, 120);
+            AddServerColumn(EServerColName.streamSecurity, ResUI.LvTLS, 100);
+            AddServerColumn(EServerColName.testResult, ResUI.LvTestResults, 120, HorizontalAlignment.Right);
 
             if (statistics != null && statistics.Enable)
             {
-                lvServers.Columns.Add(ResUI.LvTodayDownloadDataAmount, 70);
-                lvServers.Columns.Add(ResUI.LvTodayUploadDataAmount, 70);
-                lvServers.Columns.Add(ResUI.LvTotalDownloadDataAmount, 70);
-                lvServers.Columns.Add(ResUI.LvTotalUploadDataAmount, 70);
+                AddServerColumn(EServerColName.todayDown, ResUI.LvTodayDownloadDataAmount, 70);
+                AddServerColumn(EServerColName.todayUp, ResUI.LvTodayUploadDataAmount, 70);
+                AddServerColumn(EServerColName.totalDown, ResUI.LvTotalDownloadDataAmount, 70);
+                AddServerColumn(EServerColName.totalUp, ResUI.LvTotalUploadDataAmount, 70);
             }
             lvServers.EndUpdate();
+        }
+
+        private ColumnHeader AddServerColumn(EServerColName name, string text, int width, HorizontalAlignment alignment = HorizontalAlignment.Left)
+        {
+            var col = new ColumnHeader
+            {
+                Name = name.ToString(),
+                Text = text,
+                Width = width,
+                TextAlign = alignment,
+                Tag = name
+            };
+            lvServers.Columns.Add(col);
+            return col;
         }
 
         private void UpdateDragEventHandler(int index, int targetIndex)
@@ -382,7 +564,6 @@ namespace v2rayN.Forms
                 Utils.AddSubItem(lvItem, EServerColName.security.ToString(), item.security);
                 Utils.AddSubItem(lvItem, EServerColName.network.ToString(), item.network);
                 Utils.AddSubItem(lvItem, EServerColName.streamSecurity.ToString(), item.streamSecurity);
-                Utils.AddSubItem(lvItem, EServerColName.subRemarks.ToString(), item.GetSubRemarks(config));
                 Utils.AddSubItem(lvItem, EServerColName.testResult.ToString(), item.testResult);
 
                 if (statistics != null && statistics.Enable)
@@ -483,7 +664,9 @@ namespace v2rayN.Forms
 
             try
             {
-                if ((EServerColName)e.Column == EServerColName.def)
+                var col = lvServers.Columns[e.Column];
+                var colName = (col?.Tag is EServerColName n) ? n : (EServerColName)e.Column;
+                if (colName == EServerColName.def)
                 {
                     foreach (ColumnHeader it in lvServers.Columns)
                     {
@@ -494,7 +677,7 @@ namespace v2rayN.Forms
 
                 var tag = lvServers.Columns[e.Column].Tag?.ToString();
                 bool asc = Utils.IsNullOrEmpty(tag) || !Convert.ToBoolean(tag);
-                if (ConfigHandler.SortServers(ref config, ref lstVmess, (EServerColName)e.Column, asc) != 0)
+                if (ConfigHandler.SortServers(ref config, ref lstVmess, colName, asc) != 0)
                 {
                     return;
                 }
@@ -506,47 +689,75 @@ namespace v2rayN.Forms
                 Utils.SaveLog(ex.Message, ex);
             }
 
-            if (e.Column < 0)
-            {
-                return;
-            }
-
         }
 
-        private void InitGroupView()
+        private void InitSubView(string preferSubId)
+        {
+            InitSubView(preferSubId, string.Empty);
+        }
+
+        private void InitSubView(string preferSubId, string fallbackSubId)
         {
             tabGroup.TabPages.Clear();
 
-            string title = $"  {ResUI.AllGroupServers}   ";
-            var tabPage = new TabPage(title);
-            tabPage.Name = "";
+            // Subscription tabs
+            bool needSave = false;
+            if (config.subItem != null)
+            {
+                foreach (var item in config.subItem)
+                {
+                    if (item == null)
+                    {
+                        continue;
+                    }
+
+                    var subId = (item.id ?? string.Empty).TrimEx();
+                    if (Utils.IsNullOrEmpty(subId))
+                    {
+                        // Ensure tab identity for selection/update logic.
+                        subId = Utils.GetGUID(false);
+                        item.id = subId;
+                        needSave = true;
+                    }
+
+                    var tabPage2 = new TabPage($"   {item.remarks}   ") { Name = subId, Tag = item };
+                    tabGroup.TabPages.Add(tabPage2);
+                }
+            }
+
+            // Unsubscribed tab (manual nodes) - keep it as the last tab
+            string title = $"  {ResUI.UngroupedServers}   ";
+            var tabPage = new TabPage(title) { Name = UnsubscribedTabId };
             tabGroup.TabPages.Add(tabPage);
 
-            foreach (var item in config.groupItem.OrderBy(t => t.sort))
+            if (needSave)
             {
-                var tabPage2 = new TabPage($"   {item.remarks}   ");
-                tabPage2.Name = item.id;
-                tabGroup.TabPages.Add(tabPage2);
+                ConfigHandler.SaveSubItem(ref config);
             }
 
-            tabGroup.SelectedIndex = 0;
-
-            //menuMoveToGroup
-            menuMoveToGroup.DropDownItems.Clear();
-
-            List<ToolStripMenuItem> lst = new List<ToolStripMenuItem>();
-            foreach (var item in config.groupItem)
+            if (!Utils.IsNullOrEmpty(preferSubId))
             {
-                string name = item.remarks;
-
-                ToolStripMenuItem ts = new ToolStripMenuItem(name)
+                var preferred = tabGroup.TabPages.Cast<TabPage>().FirstOrDefault(t => t.Name == preferSubId);
+                if (preferred != null)
                 {
-                    Tag = item.id,
-                };
-                ts.Click += ts_Group_Click;
-                lst.Add(ts);
+                    tabGroup.SelectedTab = preferred;
+                    _subId = preferred.Name;
+                    return;
+                }
             }
-            menuMoveToGroup.DropDownItems.AddRange(lst.ToArray());
+
+            if (!Utils.IsNullOrEmpty(fallbackSubId))
+            {
+                var fallback = tabGroup.TabPages.Cast<TabPage>().FirstOrDefault(t => t.Name == fallbackSubId);
+                if (fallback != null)
+                {
+                    tabGroup.SelectedTab = fallback;
+                    _subId = fallback.Name;
+                    return;
+                }
+            }
+
+            SelectFirstTab();
         }
 
         private void tabGroup_SelectedIndexChanged(object sender, EventArgs e)
@@ -555,37 +766,30 @@ namespace v2rayN.Forms
             {
                 return;
             }
-            _groupId = string.Empty;
-            //groupId = tabGroup.TabPages[tabGroup.SelectedIndex].Name;
-            _groupId = tabGroup.SelectedTab.Name;
+            _subId = tabGroup.SelectedTab?.Name ?? UnsubscribedTabId;
+            if (config?.uiItem != null)
+            {
+                config.uiItem.mainSelectedSubId = _subId;
+            }
 
             RefreshServers();
 
             lvServers.Focus();
         }
 
-        private void ts_Group_Click(object sender, EventArgs e)
+        private void SelectFirstTab()
         {
-            try
+            if (tabGroup.TabPages.Count <= 0)
             {
-                ToolStripItem ts = (ToolStripItem)sender;
-                var groupIdSelected = Utils.ToString(ts.Tag);
-
-                int index = GetLvSelectedIndex();
-                if (index < 0)
-                {
-                    return;
-                }
-
-                if (ConfigHandler.MoveServerToGroup(config, lstSelecteds, groupIdSelected) == 0)
-                {
-                    RefreshServers();
-                }
+                _subId = UnsubscribedTabId;
+                return;
             }
-            catch
-            {
-            }
+
+            tabGroup.SelectedIndex = 0;
+            _subId = tabGroup.SelectedTab?.Name ?? UnsubscribedTabId;
         }
+
+
         #endregion
 
         #region v2ray 操作
@@ -668,12 +872,26 @@ namespace v2rayN.Forms
                 fm = new AddServerForm();
             }
             fm.vmessItem = index >= 0 ? lstVmess[index] : null;
-            fm.groupId = _groupId;
             fm.eConfigType = configType;
             if (fm.ShowDialog() == DialogResult.OK)
             {
+                if (index < 0)
+                {
+                    // Manual nodes should always be placed under the Unsubscribed tab.
+                    SelectUnsubscribedTab();
+                }
                 RefreshServers();
                 _ = LoadV2ray();
+            }
+        }
+
+        private void SelectUnsubscribedTab()
+        {
+            var tab = tabGroup.TabPages.Cast<TabPage>().FirstOrDefault(t => t.Name == UnsubscribedTabId);
+            if (tab != null)
+            {
+                tabGroup.SelectedTab = tab;
+                _subId = UnsubscribedTabId;
             }
         }
 
@@ -709,7 +927,7 @@ namespace v2rayN.Forms
                         menuSpeedServer_Click(null, null);
                         break;
                     case Keys.F:
-                        menuServerFilter_Click(null, null);
+                        FocusServerFilter();
                         break;
                     case Keys.E:
                         menuSortServerResult_Click(null, null);
@@ -803,18 +1021,6 @@ namespace v2rayN.Forms
             SetDefaultServer(index);
         }
 
-        private void menuServerFilter_Click(object sender, EventArgs e)
-        {
-            var fm = new MsgFilterSetForm();
-            fm.MsgFilter = serverFilter;
-            if (fm.ShowDialog() == DialogResult.OK)
-            {
-                serverFilter = fm.MsgFilter;
-                // gbServers removed; keep refresh only
-                RefreshServers();
-            }
-        }
-
         private void menuPingServer_Click(object sender, EventArgs e)
         {
             Speedtest(ESpeedActionType.Ping);
@@ -826,27 +1032,11 @@ namespace v2rayN.Forms
 
         private void menuRealPingServer_Click(object sender, EventArgs e)
         {
-            //if (!config.sysAgentEnabled)
-            //{
-            //    UI.Show(ResUI.NeedHttpGlobalProxy"));
-            //    return;
-            //}
-
-            //UI.Show(ResUI.SpeedServerTips"));
-
             Speedtest(ESpeedActionType.Realping);
         }
 
         private void menuSpeedServer_Click(object sender, EventArgs e)
         {
-            //if (!config.sysAgentEnabled)
-            //{
-            //    UI.Show(ResUI.NeedHttpGlobalProxy"));
-            //    return;
-            //}
-
-            //UI.Show(ResUI.SpeedServerTips"));
-
             Speedtest(ESpeedActionType.Speedtest);
         }
         private void Speedtest(ESpeedActionType actionType)
@@ -895,59 +1085,55 @@ namespace v2rayN.Forms
             MainFormHandler.Instance.Export2ServerConfig(lstVmess[index], config);
         }
 
-        private void menuExport2ShareUrl_Click(object sender, EventArgs e)
+        private string BuildShareUrlsFromSelected()
         {
             GetLvSelectedIndex();
-
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var it in lstSelecteds)
             {
                 string url = ShareHandler.GetShareUrl(it);
-                if (Utils.IsNullOrEmpty(url))
+                if (!Utils.IsNullOrEmpty(url))
                 {
-                    continue;
+                    sb.Append(url);
+                    sb.AppendLine();
                 }
-                sb.Append(url);
-                sb.AppendLine();
             }
-            if (sb.Length > 0)
+            return sb.ToString();
+        }
+
+        private void menuExport2ShareUrl_Click(object sender, EventArgs e)
+        {
+            string urls = BuildShareUrlsFromSelected();
+            if (urls.Length > 0)
             {
-                Utils.SetClipboardData(sb.ToString());
+                Utils.SetClipboardData(urls);
                 AppendText(false, ResUI.BatchExportURLSuccessfully);
-                //UI.Show(ResUI.BatchExportURLSuccessfully"));
             }
         }
 
         private void menuExport2SubContent_Click(object sender, EventArgs e)
         {
-            GetLvSelectedIndex();
-
-            StringBuilder sb = new StringBuilder();
-            foreach (var it in lstSelecteds)
+            string urls = BuildShareUrlsFromSelected();
+            if (urls.Length > 0)
             {
-                string url = ShareHandler.GetShareUrl(it);
-                if (Utils.IsNullOrEmpty(url))
-                {
-                    continue;
-                }
-                sb.Append(url);
-                sb.AppendLine();
-            }
-            if (sb.Length > 0)
-            {
-                Utils.SetClipboardData(Utils.Base64Encode(sb.ToString()));
+                Utils.SetClipboardData(Utils.Base64Encode(urls));
                 UI.Show(ResUI.BatchExportSubscriptionSuccessfully);
             }
         }
 
-        private void tsbOptionSetting_Click(object sender, EventArgs e)
+        private void OpenOptionSetting()
         {
-            OptionSettingForm fm = new OptionSettingForm();
+            var fm = new OptionSettingForm();
             if (fm.ShowDialog() == DialogResult.OK)
             {
                 RefreshServers();
                 _ = LoadV2ray();
             }
+        }
+
+        private void tsbOptionSetting_Click(object sender, EventArgs e)
+        {
+            OpenOptionSetting();
         }
 
         private void tsbRoutingSetting_Click(object sender, EventArgs e)
@@ -964,24 +1150,7 @@ namespace v2rayN.Forms
         private void tsbGlobalHotkeySetting_Click(object sender, EventArgs e)
         {
             var fm = new GlobalHotkeySettingForm();
-            if (fm.ShowDialog() == DialogResult.OK)
-            {
-                //RefreshRoutingsMenu();
-                //RefreshServers();
-                //_ = LoadV2ray();
-            }
-
-        }
-
-        private void tsbGroupSetting_Click(object sender, EventArgs e)
-        {
-            var fm = new GroupSettingForm();
-            if (fm.ShowDialog() == DialogResult.OK)
-            {
-                InitGroupView();
-                RefreshServers();
-            }
-
+            fm.ShowDialog();
         }
 
         private void tsbReload_Click(object sender, EventArgs e)
@@ -1005,19 +1174,21 @@ namespace v2rayN.Forms
             if (ConfigHandler.SetDefaultServer(ref config, lstVmess[index]) == 0)
             {
                 //RefreshServers();
+                var boldFont = new Font(lvServers.Font, FontStyle.Bold);
+                var regularFont = new Font(lvServers.Font, FontStyle.Regular);
                 for (int k = 0; k < lstVmess.Count; k++)
                 {
                     if (config.IsActiveNode(lstVmess[k]))
                     {
                         lvServers.Items[k].SubItems[0].Text = Global.CheckMark;
                         lvServers.Items[k].ForeColor = Color.DodgerBlue;
-                        lvServers.Items[k].Font = new Font(lvServers.Font, FontStyle.Bold);
+                        lvServers.Items[k].Font = boldFont;
                     }
                     else
                     {
                         lvServers.Items[k].SubItems[0].Text = (k + 1).ToString();
                         lvServers.Items[k].ForeColor = lvServers.ForeColor;
-                        lvServers.Items[k].Font = new Font(lvServers.Font, FontStyle.Regular);
+                        lvServers.Items[k].Font = regularFont;
                     }
                 }
                 RefreshServersMenu();
@@ -1084,9 +1255,11 @@ namespace v2rayN.Forms
         private void menuAddServers_Click(object sender, EventArgs e)
         {
             string clipboardData = Utils.GetClipboardData();
-            int ret = ConfigHandler.AddBatchServers(ref config, clipboardData, "", _groupId);
+            int ret = ConfigHandler.AddBatchServers(ref config, clipboardData, "");
             if (ret > 0)
             {
+                InitSubView(_subId);
+                SelectUnsubscribedTab();
                 RefreshServers();
                 UI.Show(string.Format(ResUI.SuccessfullyImportedServerViaClipboard, ret));
             }
@@ -1114,9 +1287,11 @@ namespace v2rayN.Forms
             }
             else
             {
-                int ret = ConfigHandler.AddBatchServers(ref config, result, "", _groupId);
+                int ret = ConfigHandler.AddBatchServers(ref config, result, "");
                 if (ret > 0)
                 {
+                    InitSubView(_subId);
+                    SelectUnsubscribedTab();
                     RefreshServers();
                     UI.Show(ResUI.SuccessfullyImportedServerViaScan);
                 }
@@ -1141,6 +1316,7 @@ namespace v2rayN.Forms
         {
             if (MainFormHandler.Instance.RestoreGuiNConfig(ref config))
             {
+                InitSubView(_subId);
                 RefreshServers();
             }
         }
@@ -1178,7 +1354,7 @@ namespace v2rayN.Forms
         /// <param name="msg"></param>
         private void notifyMsg(string msg)
         {
-            notifyMain.Text = (msg.Length <= 63 ? msg : msg.Substring(1, 63));
+            notifyMain.Text = (msg.Length <= 63 ? msg : msg.Substring(0, 63));
         }
 
         #endregion
@@ -1212,6 +1388,7 @@ namespace v2rayN.Forms
             }
             Activate();
             ShowInTaskbar = true;
+            UpdateWindowHwndInRegistry();
             //this.notifyIcon1.Visible = false;
             mainMsgControl.ScrollToCaret();
 
@@ -1227,19 +1404,12 @@ namespace v2rayN.Forms
 
         private void HideForm()
         {
-            //this.WindowState = FormWindowState.Minimized;
             Hide();
-            //this.notifyMain.Icon = this.Icon;
             notifyMain.Visible = true;
             ShowInTaskbar = false;
 
             SetVisibleCore(false);
-
-            //write Handle to reg
-            if (IsHandleCreated)
-            {
-                Utils.RegWriteValue(Global.MyRegPath, Utils.WindowHwndKey, Convert.ToString((long)Handle));
-            }
+            UpdateWindowHwndInRegistry();
         }
 
         #endregion
@@ -1289,25 +1459,20 @@ namespace v2rayN.Forms
                 down /= (ulong)(config.statisticsFreshRate);
                 mainMsgControl.SetToolSslInfo("speed", string.Format("{0}/s↑ | {1}/s↓", Utils.HumanFy(up), Utils.HumanFy(down)));
 
-                foreach (var it in statistics)
+                lvServers.Invoke((MethodInvoker)delegate
                 {
-                    int index = lstVmess.FindIndex(item => item.indexId == it.itemId);
-                    if (index < 0)
+                    lvServers.BeginUpdate();
+                    foreach (var it in statistics)
                     {
-                        continue;
-                    }
-                    lvServers.Invoke((MethodInvoker)delegate
-                    {
-                        lvServers.BeginUpdate();
-
+                        int index = lstVmess.FindIndex(item => item.indexId == it.itemId);
+                        if (index < 0) continue;
                         lvServers.Items[index].SubItems["todayDown"].Text = Utils.HumanFy(it.todayDown);
                         lvServers.Items[index].SubItems["todayUp"].Text = Utils.HumanFy(it.todayUp);
                         lvServers.Items[index].SubItems["totalDown"].Text = Utils.HumanFy(it.totalDown);
                         lvServers.Items[index].SubItems["totalUp"].Text = Utils.HumanFy(it.totalUp);
-
-                        lvServers.EndUpdate();
-                    });
-                }
+                    }
+                    lvServers.EndUpdate();
+                });
 
             }
             catch (Exception ex)
@@ -1439,16 +1604,6 @@ namespace v2rayN.Forms
         private void tsbCheckUpdateN_Click(object sender, EventArgs e)
         {
             Process.Start(Global.UpdateUrl);
-
-            //void _updateUI(bool success, string msg)
-            //{
-            //    AppendText(false, msg);
-            //    if (success)
-            //    {
-            //        menuExit_Click(null, null);
-            //    }
-            //};
-            //(new UpdateHandle()).CheckUpdateGuiN(config, _updateUI, config.checkPreReleaseUpdate);
         }
 
         private void tsbCheckUpdateCore_Click(object sender, EventArgs e)
@@ -1531,6 +1686,8 @@ namespace v2rayN.Forms
             SubSettingForm fm = new SubSettingForm();
             if (fm.ShowDialog() == DialogResult.OK)
             {
+                var prefer = _subId;
+                InitSubView(prefer);
                 RefreshServers();
             }
         }
@@ -1546,18 +1703,18 @@ namespace v2rayN.Forms
         }
         private void tsbSubGroupUpdate_Click(object sender, EventArgs e)
         {
-            UpdateSubscriptionProcess(_groupId, true);
+            UpdateCurrentSubscription(false);
         }
 
         private void tsbSubGroupUpdateViaProxy_Click(object sender, EventArgs e)
         {
-            UpdateSubscriptionProcess(_groupId, true);
+            UpdateCurrentSubscription(true);
         }
 
         /// <summary>
         /// the subscription update process
         /// </summary>
-        private void UpdateSubscriptionProcess(string groupId, bool blProxy)
+        private void UpdateSubscriptionProcess(string subId, bool blProxy)
         {
             void _updateUI(bool success, string msg)
             {
@@ -1575,7 +1732,17 @@ namespace v2rayN.Forms
                 }
             };
 
-            (new UpdateHandle()).UpdateSubscriptionProcess(config, groupId, blProxy, _updateUI);
+            (new UpdateHandle()).UpdateSubscriptionProcess(config, subId, blProxy, _updateUI);
+        }
+
+        private void UpdateCurrentSubscription(bool blProxy)
+        {
+            if (_subId == UnsubscribedTabId)
+            {
+                UI.ShowWarning(ResUI.PleaseSwitchToSubscriptionTabToUpdate);
+                return;
+            }
+            UpdateSubscriptionProcess(_subId, blProxy);
         }
 
         private void tsbQRCodeSwitch_CheckedChanged(object sender, EventArgs e)
@@ -1679,29 +1846,6 @@ namespace v2rayN.Forms
             }
         }
         #endregion
-
-        private class ToolStripGapRenderer : ToolStripProfessionalRenderer
-        {
-            private readonly int _extraGap;
-
-            public ToolStripGapRenderer(int extraGap)
-            {
-                _extraGap = extraGap;
-            }
-
-            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
-            {
-                if (e.Item.Image != null
-                    && e.Item.DisplayStyle == ToolStripItemDisplayStyle.ImageAndText
-                    && e.Item.TextImageRelation == TextImageRelation.ImageBeforeText
-                    && e.Item.OwnerItem == null)
-                {
-                    var rect = e.TextRectangle;
-                    e.TextRectangle = new Rectangle(rect.X + _extraGap, rect.Y, rect.Width, rect.Height);
-                }
-                base.OnRenderItemText(e);
-            }
-        }
 
     }
 }

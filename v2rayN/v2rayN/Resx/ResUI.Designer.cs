@@ -70,15 +70,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 All servers 的本地化字符串。
-        /// </summary>
-        internal static string AllGroupServers {
-            get {
-                return ResourceManager.GetString("AllGroupServers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Batch export subscription to clipboard successfully 的本地化字符串。
         /// </summary>
         internal static string BatchExportSubscriptionSuccessfully {
@@ -129,15 +120,6 @@ namespace v2rayN.Resx {
         internal static string Downloading {
             get {
                 return ResourceManager.GetString("Downloading", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Download 的本地化字符串。
-        /// </summary>
-        internal static string downloadSpeed {
-            get {
-                return ResourceManager.GetString("downloadSpeed", resourceCulture);
             }
         }
         
@@ -394,15 +376,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 remarks 的本地化字符串。
-        /// </summary>
-        internal static string LvRemarks {
-            get {
-                return ResourceManager.GetString("LvRemarks", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Type 的本地化字符串。
         /// </summary>
         internal static string LvServiceType {
@@ -493,24 +466,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Medium 的本地化字符串。
-        /// </summary>
-        internal static string MediumFresh {
-            get {
-                return ResourceManager.GetString("MediumFresh", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Clear original subscription content 的本地化字符串。
-        /// </summary>
-        internal static string MsgClearSubscription {
-            get {
-                return ResourceManager.GetString("MsgClearSubscription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Download GeoFile: {0} successfully 的本地化字符串。
         /// </summary>
         internal static string MsgDownloadGeoFileSuccessfully {
@@ -574,38 +529,11 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 PAC update failed 的本地化字符串。
-        /// </summary>
-        internal static string MsgPACUpdateFailed {
-            get {
-                return ResourceManager.GetString("MsgPACUpdateFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 PAC update succeeded 的本地化字符串。
-        /// </summary>
-        internal static string MsgPACUpdateSuccessfully {
-            get {
-                return ResourceManager.GetString("MsgPACUpdateSuccessfully", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Resolve {0} successfully 的本地化字符串。
         /// </summary>
         internal static string MsgParsingSuccessfully {
             get {
                 return ResourceManager.GetString("MsgParsingSuccessfully", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Servers (Filter : {0}) 的本地化字符串。
-        /// </summary>
-        internal static string MsgServerTitle {
-            get {
-                return ResourceManager.GetString("MsgServerTitle", resourceCulture);
             }
         }
         
@@ -628,24 +556,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Filter servers 的本地化字符串。
-        /// </summary>
-        internal static string ServerFilterPlaceholder {
-            get {
-                return ResourceManager.GetString("ServerFilterPlaceholder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Simplify PAC Success 的本地化字符串。
-        /// </summary>
-        internal static string MsgSimplifyPAC {
-            get {
-                return ResourceManager.GetString("MsgSimplifyPAC", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Start getting subscriptions 的本地化字符串。
         /// </summary>
         internal static string MsgStartGettingSubscriptions {
@@ -660,15 +570,6 @@ namespace v2rayN.Resx {
         internal static string MsgStartUpdating {
             get {
                 return ResourceManager.GetString("MsgStartUpdating", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Start updating PAC... 的本地化字符串。
-        /// </summary>
-        internal static string MsgStartUpdatingPAC {
-            get {
-                return ResourceManager.GetString("MsgStartUpdatingPAC", resourceCulture);
             }
         }
         
@@ -844,15 +745,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Fast 的本地化字符串。
-        /// </summary>
-        internal static string QuickFresh {
-            get {
-                return ResourceManager.GetString("QuickFresh", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Global hotkey {0} registered failed, reason {1} 的本地化字符串。
         /// </summary>
         internal static string RegisterGlobalHotkeyFailed {
@@ -925,15 +817,6 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Slow 的本地化字符串。
-        /// </summary>
-        internal static string SlowFresh {
-            get {
-                return ResourceManager.GetString("SlowFresh", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Note: This feature relies on the Http global proxy. Please manually adjust the Http global proxy and active node after testing. 的本地化字符串。
         /// </summary>
         internal static string SpeedServerTips {
@@ -948,15 +831,6 @@ namespace v2rayN.Resx {
         internal static string Speedtesting {
             get {
                 return ResourceManager.GetString("Speedtesting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 PAC failed to start. Please run this program as Administrator. 的本地化字符串。
-        /// </summary>
-        internal static string StartPacFailed {
-            get {
-                return ResourceManager.GetString("StartPacFailed", resourceCulture);
             }
         }
         
@@ -1151,11 +1025,20 @@ namespace v2rayN.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Ungrouped 的本地化字符串。
+        ///   查找类似 Unsubscribed 的本地化字符串。
         /// </summary>
         internal static string UngroupedServers {
             get {
                 return ResourceManager.GetString("UngroupedServers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Current tab is Unsubscribed. Please switch to a subscription tab to update. 的本地化字符串。
+        /// </summary>
+        internal static string PleaseSwitchToSubscriptionTabToUpdate {
+            get {
+                return ResourceManager.GetString("PleaseSwitchToSubscriptionTabToUpdate", resourceCulture);
             }
         }
     }

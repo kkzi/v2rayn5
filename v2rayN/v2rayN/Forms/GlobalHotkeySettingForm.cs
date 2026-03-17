@@ -99,19 +99,12 @@ namespace v2rayN.Forms
         {
             config.globalHotkeys = lstKey;
 
-            if (ConfigHandler.SaveConfig(ref config, false) == 0)
-            {
-                DialogResult = DialogResult.OK;
-            }
-            else
-            {
-                UI.ShowWarning(ResUI.OperationFailed);
-            }
+            HandleResult(ConfigHandler.SaveConfig(ref config, false));
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
 
         private void btnReset_Click(object sender, EventArgs e)

@@ -137,7 +137,7 @@ namespace v2rayN.Forms
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
 
         private void linkRuleobjectDoc_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

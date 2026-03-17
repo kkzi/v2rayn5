@@ -468,12 +468,6 @@
   <data name="tsbGlobalHotkeySetting.Text" xml:space="preserve">
     <value>全局热键设置</value>
   </data>
-  <data name="tsbGroupSetting.Size" type="System.Drawing.Size, System.Drawing">
-    <value>189, 22</value>
-  </data>
-  <data name="tsbGroupSetting.Text" xml:space="preserve">
-    <value>服务器分组设置</value>
-  </data>
   <data name="toolStripSeparator14.Size" type="System.Drawing.Size, System.Drawing">
     <value>186, 6</value>
   </data>
@@ -552,9 +546,6 @@
   <data name="tsbClose.Text" xml:space="preserve">
     <value>  关闭窗口  </value>
   </data>
-  <data name="menuMoveToGroup.Text" xml:space="preserve">
-    <value>移至分组</value>
-  </data>
   <data name="menuMoveEvent.Text" xml:space="preserve">
     <value>上下移至</value>
   </data>
@@ -571,10 +562,10 @@
     <value>SagerNet-Core</value>
   </data>
   <data name="tsbSubGroupUpdate.Text" xml:space="preserve">
-    <value>更新当前分组订阅(不通过代理)</value>
+    <value>更新当前订阅(不通过代理)</value>
   </data>
   <data name="tsbSubGroupUpdateViaProxy.Text" xml:space="preserve">
-    <value>更新当前分组订阅(通过代理)</value>
+    <value>更新当前订阅(通过代理)</value>
   </data>
   <data name="tsbRestoreGuiNConfig.Text" xml:space="preserve">
     <value>恢复v2rayN配置文件</value>

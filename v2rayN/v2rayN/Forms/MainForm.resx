@@ -179,12 +179,6 @@
   <data name="toolStripSeparator1.Size" type="System.Drawing.Size, System.Drawing">
     <value>420, 6</value>
   </data>
-  <data name="menuServerFilter.Size" type="System.Drawing.Size, System.Drawing">
-    <value>423, 24</value>
-  </data>
-  <data name="menuServerFilter.Text" xml:space="preserve">
-    <value>Set server filter (Ctrl+F)</value>
-  </data>
   <data name="menuRemoveServer.Size" type="System.Drawing.Size, System.Drawing">
     <value>423, 24</value>
   </data>
@@ -211,12 +205,6 @@
   </data>
   <data name="toolStripSeparator3.Size" type="System.Drawing.Size, System.Drawing">
     <value>420, 6</value>
-  </data>
-  <data name="menuMoveToGroup.Size" type="System.Drawing.Size, System.Drawing">
-    <value>423, 24</value>
-  </data>
-  <data name="menuMoveToGroup.Text" xml:space="preserve">
-    <value>Move to Group</value>
   </data>
   <data name="menuMoveTop.Size" type="System.Drawing.Size, System.Drawing">
     <value>237, 26</value>
@@ -765,13 +753,13 @@
     <value>395, 26</value>
   </data>
   <data name="tsbSubGroupUpdate.Text" xml:space="preserve">
-    <value>Update group subscription without proxy</value>
+    <value>Update current subscription without proxy</value>
   </data>
   <data name="tsbSubGroupUpdateViaProxy.Size" type="System.Drawing.Size, System.Drawing">
     <value>395, 26</value>
   </data>
   <data name="tsbSubGroupUpdateViaProxy.Text" xml:space="preserve">
-    <value>Update group subscription with proxy</value>
+    <value>Update current subscription with proxy</value>
   </data>
   <data name="tsbSub.ImageTransparentColor" type="System.Drawing.Color, System.Drawing">
     <value>Magenta</value>
@@ -820,12 +808,6 @@
   </data>
   <data name="tsbGlobalHotkeySetting.Text" xml:space="preserve">
     <value>GlobalHotkeySetting</value>
-  </data>
-  <data name="tsbGroupSetting.Size" type="System.Drawing.Size, System.Drawing">
-    <value>245, 26</value>
-  </data>
-  <data name="tsbGroupSetting.Text" xml:space="preserve">
-    <value>GroupSetting</value>
   </data>
   <data name="toolStripSeparator14.Size" type="System.Drawing.Size, System.Drawing">
     <value>242, 6</value>
@@ -1097,12 +1079,6 @@
   <data name="&gt;&gt;toolStripSeparator1.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;menuServerFilter.Name" xml:space="preserve">
-    <value>menuServerFilter</value>
-  </data>
-  <data name="&gt;&gt;menuServerFilter.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="&gt;&gt;menuRemoveServer.Name" xml:space="preserve">
     <value>menuRemoveServer</value>
   </data>
@@ -1132,12 +1108,6 @@
   </data>
   <data name="&gt;&gt;toolStripSeparator3.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;menuMoveToGroup.Name" xml:space="preserve">
-    <value>menuMoveToGroup</value>
-  </data>
-  <data name="&gt;&gt;menuMoveToGroup.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;menuMoveEvent.Name" xml:space="preserve">
     <value>menuMoveEvent</value>
@@ -1419,12 +1389,6 @@
     <value>tsbGlobalHotkeySetting</value>
   </data>
   <data name="&gt;&gt;tsbGlobalHotkeySetting.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;tsbGroupSetting.Name" xml:space="preserve">
-    <value>tsbGroupSetting</value>
-  </data>
-  <data name="&gt;&gt;tsbGroupSetting.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripSeparator14.Name" xml:space="preserve">

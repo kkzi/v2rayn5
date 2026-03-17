@@ -4,5 +4,7 @@
     <RestoreBuildInParallel>false</RestoreBuildInParallel>
     <!-- Workaround: solution build can also be flaky when projects are built in parallel. -->
     <BuildInParallel>false</BuildInParallel>
+    <!-- Disable NuGet vulnerability auditing to avoid NU1900 when audit data can't be fetched. -->
+    <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
 </Project>

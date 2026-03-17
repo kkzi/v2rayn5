@@ -57,19 +57,12 @@ namespace v2rayN.Forms
 
             EndBindingLockedData();
 
-            if (ConfigHandler.SaveRouting(ref config) == 0)
-            {
-                DialogResult = DialogResult.OK;
-            }
-            else
-            {
-                UI.ShowWarning(ResUI.OperationFailed);
-            }
+            HandleResult(ConfigHandler.SaveRouting(ref config));
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
         private void chkenableRoutingAdvanced_CheckedChanged_1(object sender, EventArgs e)
         {
@@ -139,17 +132,14 @@ namespace v2rayN.Forms
             lvRoutings.BeginUpdate();
             lvRoutings.Items.Clear();
 
-            lvRoutings.GridLines = true;
-            lvRoutings.FullRowSelect = true;
-            lvRoutings.View = View.Details;
-            lvRoutings.MultiSelect = true;
-            lvRoutings.HeaderStyle = ColumnHeaderStyle.Clickable;
-
-            lvRoutings.Columns.Add("", 30);
-            lvRoutings.Columns.Add(ResUI.LvAlias, 200);
-            lvRoutings.Columns.Add(ResUI.LvCount, 60);
-            lvRoutings.Columns.Add(ResUI.LvUrl, 240);
-            lvRoutings.Columns.Add(ResUI.LvCustomIcon, 240);
+            InitListView(lvRoutings, new (string name, int width)[]
+            {
+                ("", 30),
+                (ResUI.LvAlias, 200),
+                (ResUI.LvCount, 60),
+                (ResUI.LvUrl, 240),
+                (ResUI.LvCustomIcon, 240)
+            });
 
             lvRoutings.EndUpdate();
         }
@@ -207,27 +197,7 @@ namespace v2rayN.Forms
 
         private int GetLvSelectedIndex()
         {
-            int index = -1;
-            _lvSelecteds.Clear();
-            try
-            {
-                if (lvRoutings.SelectedIndices.Count <= 0)
-                {
-                    UI.Show(ResUI.PleaseSelectRules);
-                    return index;
-                }
-
-                index = lvRoutings.SelectedIndices[0];
-                foreach (int i in lvRoutings.SelectedIndices)
-                {
-                    _lvSelecteds.Add(i);
-                }
-                return index;
-            }
-            catch
-            {
-                return index;
-            }
+            return GetLvSelectedIndex(lvRoutings, _lvSelecteds);
         }
 
         #endregion

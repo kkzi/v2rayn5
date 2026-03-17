@@ -19,9 +19,12 @@ namespace v2rayN.Forms
         private string _msgFilter = string.Empty;
         delegate void AppendTextDelegate(string text);
 
+        private static readonly Font StatusBarFont = new Font("Microsoft YaHei UI", 8F, FontStyle.Regular, GraphicsUnit.Point);
+
         public MainMsgControl()
         {
             InitializeComponent();
+            ssMain.Font = StatusBarFont;
             toolSdbSysProxy.DropDownItemClicked += toolSdbSysProxy_DropDownItemClicked;
             toolSdbRoutingRule.DropDownItemClicked += toolSdbRoutingRule_DropDownItemClicked;
         }
@@ -299,6 +302,11 @@ namespace v2rayN.Forms
             {
                 return;
             }
+            if (e.ClickedItem == toolSslInboundInfo)
+            {
+                OptionSettingRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
             if (!Utils.IsNullOrEmpty(e.ClickedItem.Text))
             {
                 Utils.SetClipboardData(e.ClickedItem.Text);
@@ -325,6 +333,7 @@ namespace v2rayN.Forms
         public event EventHandler<RoutingSelectedEventArgs> RoutingSelected;
         public event EventHandler<SysProxySelectedEventArgs> SysProxySelected;
         public event EventHandler ToggleLogRequested;
+        public event EventHandler OptionSettingRequested;
 
         public class RoutingSelectedEventArgs : EventArgs
         {

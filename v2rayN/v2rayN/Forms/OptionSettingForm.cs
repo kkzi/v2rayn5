@@ -157,14 +157,7 @@ namespace v2rayN.Forms
                 return;
             }
 
-            if (ConfigHandler.SaveConfig(ref config) == 0)
-            {
-                DialogResult = DialogResult.OK;
-            }
-            else
-            {
-                UI.ShowWarning(ResUI.OperationFailed);
-            }
+            HandleResult(ConfigHandler.SaveConfig(ref config));
         }
 
         /// <summary>
@@ -325,7 +318,7 @@ namespace v2rayN.Forms
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            CloseCancel();
         }
 
 

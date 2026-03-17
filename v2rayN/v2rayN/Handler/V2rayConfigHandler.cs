@@ -986,7 +986,7 @@ namespace v2rayN.Handler
                     File.WriteAllLines(fileName, fileContent);
                 }
 
-                //msg = string.Format(ResUI.SuccessfulConfiguration, $"[{LazyConfig.Instance.GetConfig().GetGroupRemarks(node.groupId)}] {node.GetSummary()}");
+
                 msg = string.Format(ResUI.SuccessfulConfiguration, "");
             }
             catch (Exception ex)
@@ -1046,7 +1046,7 @@ namespace v2rayN.Handler
                 //stat
                 statistic(config, ref v2rayConfig);
 
-                //msg = string.Format(ResUI.SuccessfulConfiguration, $"[{config.GetGroupRemarks(node.groupId)}] {node.GetSummary()}");
+
                 msg = string.Format(ResUI.SuccessfulConfiguration, "");
             }
             catch (Exception ex)

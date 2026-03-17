@@ -47,7 +47,6 @@
             this.menuCopyServer = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSetDefaultServer = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.menuMoveToGroup = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMoveEvent = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMoveTop = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMoveUp = new System.Windows.Forms.ToolStripMenuItem();
@@ -105,7 +104,6 @@
             this.tsbOptionSetting = new System.Windows.Forms.ToolStripMenuItem();
             this.tsbRoutingSetting = new System.Windows.Forms.ToolStripMenuItem();
             this.tsbGlobalHotkeySetting = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsbGroupSetting = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbBackupGuiNConfig = new System.Windows.Forms.ToolStripMenuItem();
             this.tsbRestoreGuiNConfig = new System.Windows.Forms.ToolStripMenuItem();
@@ -195,7 +193,6 @@
             this.menuCopyServer,
             this.menuSetDefaultServer,
             this.toolStripSeparator3,
-            this.menuMoveToGroup,
             this.menuMoveEvent,
             this.menuSelectAll,
             this.toolStripSeparator9,
@@ -296,11 +293,6 @@
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             resources.ApplyResources(this.toolStripSeparator3, "toolStripSeparator3");
-            // 
-            // menuMoveToGroup
-            // 
-            this.menuMoveToGroup.Name = "menuMoveToGroup";
-            resources.ApplyResources(this.menuMoveToGroup, "menuMoveToGroup");
             // 
             // menuMoveEvent
             // 
@@ -585,6 +577,8 @@
             this.toolStripSpring,
             this.tsbQRCodeSwitch});
             resources.ApplyResources(this.tsMain, "tsMain");
+            this.tsMain.GripMargin = new System.Windows.Forms.Padding(0);
+            this.tsMain.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.tsMain.Name = "tsMain";
             this.tsMain.TabStop = true;
             // 
@@ -595,6 +589,7 @@
 
             resources.ApplyResources(this.panelGroupHeader, "panelGroupHeader");
             this.panelGroupHeader.Name = "panelGroupHeader";
+            this.panelGroupHeader.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
             // 
             // txtServerFilter
             // 
@@ -680,7 +675,6 @@
             this.tsbOptionSetting,
             this.tsbRoutingSetting,
             this.tsbGlobalHotkeySetting,
-            this.tsbGroupSetting,
             this.toolStripSeparator14,
             this.tsbBackupGuiNConfig,
             this.tsbRestoreGuiNConfig});
@@ -707,12 +701,6 @@
             this.tsbGlobalHotkeySetting.Name = "tsbGlobalHotkeySetting";
             resources.ApplyResources(this.tsbGlobalHotkeySetting, "tsbGlobalHotkeySetting");
             this.tsbGlobalHotkeySetting.Click += new System.EventHandler(this.tsbGlobalHotkeySetting_Click);
-            // 
-            // tsbGroupSetting
-            // 
-            this.tsbGroupSetting.Name = "tsbGroupSetting";
-            resources.ApplyResources(this.tsbGroupSetting, "tsbGroupSetting");
-            this.tsbGroupSetting.Click += new System.EventHandler(this.tsbGroupSetting_Click);
             // 
             // toolStripSeparator14
             // 
@@ -975,8 +963,6 @@
         private System.Windows.Forms.ToolStripMenuItem menuUpdateSubViaProxy;
         private System.Windows.Forms.ToolStripMenuItem tsbGlobalHotkeySetting;
         private System.Windows.Forms.TabControl tabGroup;
-        private System.Windows.Forms.ToolStripMenuItem tsbGroupSetting;
-        private System.Windows.Forms.ToolStripMenuItem menuMoveToGroup;
         private MainMsgControl mainMsgControl;
         private System.Windows.Forms.ToolStripMenuItem menuMoveEvent;
         private System.Windows.Forms.ToolStripMenuItem menuMoveTop;

@@ -58,7 +58,8 @@ namespace v2rayN.Handler
                 else
                 {
                     ShowMsg(false, msg);
-                    ShowMsg(true, $"[{config.GetGroupRemarks(item.groupId)}] {item.GetSummary()}");
+                    var subRemarks = item.GetSubRemarks(config);
+                    ShowMsg(true, Utils.IsNullOrEmpty(subRemarks) ? item.GetSummary() : $"[{subRemarks}] {item.GetSummary()}");
                     V2rayRestart();
                 }
 

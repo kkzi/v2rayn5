@@ -153,10 +153,6 @@ namespace v2rayN.Handler
             {
                 config.subItem = new List<SubItem>();
             }
-            if (config.groupItem == null)
-            {
-                config.groupItem = new List<GroupItem>();
-            }
             if (config.statisticsFreshRate > 100 || config.statisticsFreshRate < 1)
             {
                 config.statisticsFreshRate = 1;
@@ -849,7 +845,7 @@ namespace v2rayN.Handler
         /// <param name="clipboardData"></param>
         /// <param name="subid"></param>
         /// <returns>成功导入的数量</returns>
-        private static int AddBatchServers(ref Config config, string clipboardData, string subid, List<VmessItem> lstOriSub, string groupId)
+        private static int AddBatchServers(ref Config config, string clipboardData, string subid, List<VmessItem> lstOriSub)
         {
             if (Utils.IsNullOrEmpty(clipboardData))
             {
@@ -897,9 +893,6 @@ namespace v2rayN.Handler
                     vmessItem.subid = subid;
                 }
 
-                //groupId
-                vmessItem.groupId = groupId;
-
                 if (vmessItem.configType == EConfigType.VMess)
                 {
                     if (AddServer(ref config, vmessItem, false) == 0)
@@ -941,7 +934,7 @@ namespace v2rayN.Handler
             return countServers;
         }
 
-        private static int AddBatchServers4Custom(ref Config config, string clipboardData, string subid, List<VmessItem> lstOriSub, string groupId)
+        private static int AddBatchServers4Custom(ref Config config, string clipboardData, string subid, List<VmessItem> lstOriSub)
         {
             if (Utils.IsNullOrEmpty(clipboardData))
             {
@@ -1024,7 +1017,6 @@ namespace v2rayN.Handler
                 vmessItem.indexId = lstOriSub[0].indexId;
             }
             vmessItem.subid = subid;
-            vmessItem.groupId = groupId;
 
             if (Utils.IsNullOrEmpty(vmessItem.address))
             {
@@ -1042,7 +1034,7 @@ namespace v2rayN.Handler
             }
         }
 
-        private static int AddBatchServers4SsSIP008(ref Config config, string clipboardData, string subid, List<VmessItem> lstOriSub, string groupId)
+        private static int AddBatchServers4SsSIP008(ref Config config, string clipboardData, string subid, List<VmessItem> lstOriSub)
         {
             if (Utils.IsNullOrEmpty(clipboardData))
             {
@@ -1073,7 +1065,6 @@ namespace v2rayN.Handler
                     var ssItem = new VmessItem()
                     {
                         subid = subid,
-                        groupId = groupId,
                         remarks = it.remarks,
                         security = it.method,
                         id = it.password,
@@ -1092,7 +1083,7 @@ namespace v2rayN.Handler
             return -1;
         }
 
-        public static int AddBatchServers(ref Config config, string clipboardData, string subid, string groupId)
+        public static int AddBatchServers(ref Config config, string clipboardData, string subid)
         {
             List<VmessItem> lstOriSub = null;
             if (!Utils.IsNullOrEmpty(subid))
@@ -1100,21 +1091,21 @@ namespace v2rayN.Handler
                 lstOriSub = config.vmess.Where(it => it.subid == subid).ToList();
             }
 
-            int counter = AddBatchServers(ref config, clipboardData, subid, lstOriSub, groupId);
+            int counter = AddBatchServers(ref config, clipboardData, subid, lstOriSub);
             if (counter < 1)
             {
-                counter = AddBatchServers(ref config, Utils.Base64Decode(clipboardData), subid, lstOriSub, groupId);
+                counter = AddBatchServers(ref config, Utils.Base64Decode(clipboardData), subid, lstOriSub);
             }
 
             if (counter < 1)
             {
-                counter = AddBatchServers4SsSIP008(ref config, clipboardData, subid, lstOriSub, groupId);
+                counter = AddBatchServers4SsSIP008(ref config, clipboardData, subid, lstOriSub);
             }
 
             //maybe other sub 
             if (counter < 1)
             {
-                counter = AddBatchServers4Custom(ref config, clipboardData, subid, lstOriSub, groupId);
+                counter = AddBatchServers4Custom(ref config, clipboardData, subid, lstOriSub);
             }
 
             return counter;
@@ -1123,7 +1114,7 @@ namespace v2rayN.Handler
 
         #endregion
 
-        #region Sub & Group
+        #region Sub
 
         /// <summary>
         /// add sub
@@ -1195,66 +1186,6 @@ namespace v2rayN.Handler
             return 0;
         }
 
-
-        /// <summary>
-        /// save Group
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static int SaveGroupItem(ref Config config)
-        {
-            if (config.groupItem == null)
-            {
-                return -1;
-            }
-
-            foreach (var item in config.groupItem.Where(item => Utils.IsNullOrEmpty(item.id)))
-            {
-                item.id = Utils.GetGUID(false);
-            }
-
-            ToJsonFile(config);
-            return 0;
-        }
-
-        public static int RemoveGroupItem(ref Config config, string groupId)
-        {
-            if (Utils.IsNullOrEmpty(groupId))
-            {
-                return -1;
-            }
-
-            var items = config.vmess.Where(t => t.groupId == groupId).ToList();
-            foreach (var item in items)
-            {
-                if (item.groupId.Equals(groupId))
-                {
-                    item.groupId = string.Empty;
-                }
-            }
-            foreach (var item in config.subItem)
-            {
-                if (item.groupId.Equals(groupId))
-                {
-                    item.groupId = string.Empty;
-                }
-            }
-
-            ToJsonFile(config);
-            return 0;
-        }
-
-        public static int MoveServerToGroup(Config config, List<VmessItem> indexs, string groupId)
-        {
-            foreach (var item in indexs)
-            {
-                item.groupId = groupId;
-            }
-
-            ToJsonFile(config);
-
-            return 0;
-        }
         #endregion
 
         #region UI
