@@ -452,6 +452,10 @@ namespace v2rayN.Forms
 
         private sealed class ExitConfirmDialog : Form
         {
+            private const int ButtonHeight = 32;
+            private const int ButtonWidth = 80;
+            private const int DialogHeight = 120;
+
             public ExitConfirmDialog(string title, string message, Font ownerFont, Icon ownerIcon)
             {
                 Text = title ?? string.Empty;
@@ -467,27 +471,34 @@ namespace v2rayN.Forms
                     Icon = ownerIcon;
                 }
 
-                var label = new Label
+                ClientSize = new Size(420, DialogHeight);
+
+                var txt = new TextBox
                 {
-                    AutoSize = true,
-                    MaximumSize = new Size(460, 0),
-                    Text = message ?? string.Empty
+                    BorderStyle = BorderStyle.None,
+                    Multiline = true,
+                    ReadOnly = true,
+                    TabStop = false,
+                    Text = message ?? string.Empty,
+                    BackColor = SystemColors.Control,
+                    Dock = DockStyle.Fill,
+                    ScrollBars = ScrollBars.None
                 };
 
                 var btnYes = new Button
                 {
                     Text = GetYesText(),
                     DialogResult = DialogResult.Yes,
-                    AutoSize = true,
-                    Padding = new Padding(10, 2, 10, 2)
+                    AutoSize = false,
+                    Size = new Size(ButtonWidth, ButtonHeight)
                 };
 
                 var btnNo = new Button
                 {
                     Text = GetNoText(),
                     DialogResult = DialogResult.No,
-                    AutoSize = true,
-                    Padding = new Padding(10, 2, 10, 2)
+                    AutoSize = false,
+                    Size = new Size(ButtonWidth, ButtonHeight)
                 };
 
                 AcceptButton = btnYes;
@@ -495,34 +506,43 @@ namespace v2rayN.Forms
 
                 var buttons = new FlowLayoutPanel
                 {
-                    Dock = DockStyle.Fill,
-                    FlowDirection = FlowDirection.RightToLeft,
-                    WrapContents = false,
                     AutoSize = true,
-                    AutoSizeMode = AutoSizeMode.GrowAndShrink
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    FlowDirection = FlowDirection.LeftToRight,
+                    WrapContents = false,
+                    Margin = Padding.Empty,
+                    Padding = Padding.Empty
                 };
-                buttons.Controls.Add(btnNo);
                 buttons.Controls.Add(btnYes);
+                buttons.Controls.Add(btnNo);
+
+                var buttonHost = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 3,
+                    RowCount = 1,
+                    Margin = Padding.Empty,
+                    Padding = Padding.Empty
+                };
+                buttonHost.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+                buttonHost.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                buttonHost.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+                buttonHost.Controls.Add(buttons, 1, 0);
 
                 var layout = new TableLayoutPanel
                 {
                     Dock = DockStyle.Fill,
-                    AutoSize = true,
-                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
                     ColumnCount = 1,
                     RowCount = 2,
-                    Padding = new Padding(14)
+                    Padding = new Padding(14),
+                    Margin = Padding.Empty
                 };
-                layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                layout.Controls.Add(label, 0, 0);
-                layout.Controls.Add(buttons, 0, 1);
+                layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+                layout.RowStyles.Add(new RowStyle(SizeType.Absolute, ButtonHeight + 16));
+                layout.Controls.Add(txt, 0, 0);
+                layout.Controls.Add(buttonHost, 0, 1);
 
                 Controls.Add(layout);
-
-                // Ensure a reasonable minimum width so the dialog doesn't look cramped.
-                MinimumSize = new Size(320, 0);
-                AutoSize = true;
             }
 
             private static string GetYesText()

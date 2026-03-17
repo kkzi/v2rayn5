@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using v2rayN.Mode;
 using v2rayN.Resx;
+using System.Linq;
 
 namespace v2rayN.Forms
 {
@@ -11,6 +12,8 @@ namespace v2rayN.Forms
     {
         protected static Config config;
         private static readonly Lazy<Font> appFont = new Lazy<Font>(CreateAppFont);
+        private const int DialogBottomButtonHeight = 32;
+        private bool bottomButtonsNormalized_;
 
         public BaseForm()
         {
@@ -23,6 +26,112 @@ namespace v2rayN.Forms
             Font = appFont.Value;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             LoadCustomIcon();
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            NormalizeDialogBottomButtonsOnce();
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            NormalizeDialogBottomButtonsOnce();
+        }
+
+        private void NormalizeDialogBottomButtonsOnce()
+        {
+            try
+            {
+                if (bottomButtonsNormalized_)
+                {
+                    return;
+                }
+                bottomButtonsNormalized_ = true;
+
+                // Find bottom-docked containers that look like a dialog button bar.
+                var containers = EnumerateDescendants(this)
+                    .Where(c => c != null
+                                && c.Dock == DockStyle.Bottom
+                                && c is not StatusStrip
+                                && c is not ToolStrip
+                                && c is not MenuStrip)
+                    .Where(c => EnumerateDescendants(c).OfType<Button>().Any())
+                    .ToList();
+
+                // Also include the form itself if it directly hosts bottom-anchored dialog buttons.
+                if (EnumerateDescendants(this).OfType<Button>().Any(b => b != null && b.Anchor.HasFlag(AnchorStyles.Bottom)))
+                {
+                    containers.Add(this);
+                }
+
+                foreach (var container in containers.Distinct())
+                {
+                    var buttons = EnumerateDescendants(container).OfType<Button>()
+                        .Where(b => b != null)
+                        .ToList();
+
+                    if (buttons.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var b in buttons)
+                    {
+                        // Only touch dialog-style buttons.
+                        if (b.Dock != DockStyle.None)
+                        {
+                            continue;
+                        }
+
+                        // Force a consistent dialog button height across the app.
+                        b.AutoSize = false;
+                        b.Height = DialogBottomButtonHeight;
+
+                        // Keep buttons visually centered in a bottom button bar when possible.
+                        try
+                        {
+                            if (b.Parent is Panel p && p.ClientSize.Height >= DialogBottomButtonHeight)
+                            {
+                                int top = (p.ClientSize.Height - DialogBottomButtonHeight) / 2;
+                                b.Top = Math.Max(p.Padding.Top, top);
+                            }
+                        }
+                        catch { }
+                    }
+
+                    // Ensure the button bar is tall enough for the new heights.
+                    if (container != this)
+                    {
+                        int maxBottom = buttons.Max(b => b.Bottom);
+                        int desiredHeight = maxBottom + container.Padding.Bottom + 6;
+                        if (container.Height < desiredHeight)
+                        {
+                            container.Height = desiredHeight;
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static IEnumerable<Control> EnumerateDescendants(Control root)
+        {
+            if (root == null)
+            {
+                yield break;
+            }
+
+            foreach (Control child in root.Controls)
+            {
+                if (child == null) continue;
+                yield return child;
+                foreach (var grand in EnumerateDescendants(child))
+                {
+                    yield return grand;
+                }
+            }
         }
 
         private static Font CreateAppFont()
