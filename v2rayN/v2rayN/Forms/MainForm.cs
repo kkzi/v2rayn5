@@ -1376,6 +1376,8 @@ namespace v2rayN.Forms
         /// </summary>
         private void InitServersView()
         {
+            lvServers.Font = new System.Drawing.Font(lvServers.Font.FontFamily, 13f, lvServers.Font.Style);
+
             lvServers.BeginUpdate();
             lvServers.Items.Clear();
             lvServers.Columns.Clear();
