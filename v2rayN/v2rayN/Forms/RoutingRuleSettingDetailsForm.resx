@@ -136,7 +136,7 @@
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="clbProtocol.Size" type="System.Drawing.Size, System.Drawing">
-    <value>245, 20</value>
+    <value>245, 48</value>
   </data>
   <data name="label3.Size" type="System.Drawing.Size, System.Drawing">
     <value>53, 12</value>
@@ -316,7 +316,7 @@
     <value>270, 16</value>
   </data>
   <data name="labRoutingTips.Location" type="System.Drawing.Point, System.Drawing">
-    <value>144, 86</value>
+    <value>144, 140</value>
   </data>
   <data name="txtIP.TabIndex" type="System.Int32, mscorlib">
     <value>25</value>
@@ -349,7 +349,7 @@
     <value>labRoutingTips</value>
   </data>
   <data name="label1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>19, 47</value>
+    <value>19, 88</value>
   </data>
   <data name="clbProtocol.TabIndex" type="System.Int32, mscorlib">
     <value>39</value>
@@ -490,7 +490,7 @@
     <value>34</value>
   </data>
   <data name="label3.Location" type="System.Drawing.Point, System.Drawing">
-    <value>274, 47</value>
+    <value>274, 88</value>
   </data>
   <data name="label2.TabIndex" type="System.Int32, mscorlib">
     <value>40</value>
@@ -502,7 +502,7 @@
     <value>33</value>
   </data>
   <data name="clbProtocol.Location" type="System.Drawing.Point, System.Drawing">
-    <value>347, 43</value>
+    <value>347, 84</value>
   </data>
   <data name="&gt;&gt;chkEnabled.Parent" xml:space="preserve">
     <value>panel3</value>
@@ -571,7 +571,7 @@
     <value>742, 60</value>
   </data>
   <data name="panel2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 121</value>
+    <value>0, 158</value>
   </data>
   <data name="&gt;&gt;chkAutoSort.Name" xml:space="preserve">
     <value>chkAutoSort</value>
@@ -583,7 +583,7 @@
     <value>*Set the rules, separated by commas (,); The comma in the regular is replaced by &lt;COMMA&gt;</value>
   </data>
   <data name="clbInboundTag.Size" type="System.Drawing.Size, System.Drawing">
-    <value>345, 20</value>
+    <value>345, 60</value>
   </data>
   <data name="&gt;&gt;linkRuleobjectDoc.Name" xml:space="preserve">
     <value>linkRuleobjectDoc</value>
@@ -601,7 +601,7 @@
     <value>392, 0</value>
   </data>
   <data name="panel3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>742, 111</value>
+    <value>742, 148</value>
   </data>
   <data name="txtIP.Multiline" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -613,7 +613,7 @@
     <value>1</value>
   </data>
   <data name="chkEnabled.Location" type="System.Drawing.Point, System.Drawing">
-    <value>632, 45</value>
+    <value>632, 88</value>
   </data>
   <data name="panel3.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 10</value>
@@ -655,13 +655,13 @@
     <value>True</value>
   </data>
   <data name="linkRuleobjectDoc.Location" type="System.Drawing.Point, System.Drawing">
-    <value>19, 86</value>
+    <value>19, 140</value>
   </data>
   <data name="btnOK.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>742, 576</value>
+    <value>742, 613</value>
   </data>
   <data name="panel4.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
@@ -721,7 +721,7 @@
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="panel4.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 516</value>
+    <value>0, 553</value>
   </data>
   <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
     <value>71, 12</value>
