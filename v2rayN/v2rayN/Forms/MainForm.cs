@@ -374,17 +374,8 @@ namespace v2rayN.Forms
                     int cmd = (m.WParam.ToInt32() & 0xFFF0);
                     if (cmd == SC_CLOSE)
                     {
-                        if (!_allowExitOnClose && IsAltKeyDown())
-                        {
-                            if (ConfirmExitClose() == DialogResult.Yes)
-                            {
-                                _allowExitOnClose = true;
-                            }
-                            else
-                            {
-                                return;
-                            }
-                        }
+                        // Alt+F4 falls through to FormClosing which hides to tray.
+                        // Actual exit is triggered only by Alt+X or tray menu exit.
                     }
                 }
             }
@@ -655,6 +646,19 @@ namespace v2rayN.Forms
             if (!e.Alt && e.Control && e.KeyCode == Keys.F5)
             {
                 UpdateAllSubscriptionsByShortcut();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return true;
+            }
+
+            // Alt+X: confirm then exit.
+            if (e.Alt && !e.Control && !e.Shift && e.KeyCode == Keys.X)
+            {
+                if (ConfirmExitClose() == DialogResult.Yes)
+                {
+                    _allowExitOnClose = true;
+                    Close();
+                }
                 e.Handled = true;
                 e.SuppressKeyPress = true;
                 return true;
@@ -2275,10 +2279,11 @@ namespace v2rayN.Forms
 
         private void menuExit_Click(object sender, EventArgs e)
         {
-            Visible = false;
-            Close();
-
-            Application.Exit();
+            if (ConfirmExitClose() == DialogResult.Yes)
+            {
+                _allowExitOnClose = true;
+                Close();
+            }
         }
 
 
