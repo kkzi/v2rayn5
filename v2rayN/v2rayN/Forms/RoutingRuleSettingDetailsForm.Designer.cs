@@ -33,9 +33,17 @@
             this.panel3 = new System.Windows.Forms.Panel();
             this.linkRuleobjectDoc = new System.Windows.Forms.LinkLabel();
             this.chkEnabled = new System.Windows.Forms.CheckBox();
-            this.clbInboundTag = new System.Windows.Forms.CheckedListBox();
+            this.flpInboundTag = new System.Windows.Forms.FlowLayoutPanel();
+            this.chkTag_socks = new System.Windows.Forms.CheckBox();
+            this.chkTag_socks2 = new System.Windows.Forms.CheckBox();
+            this.chkTag_http = new System.Windows.Forms.CheckBox();
+            this.chkTag_http2 = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.clbProtocol = new System.Windows.Forms.CheckedListBox();
+            this.flpProtocol = new System.Windows.Forms.FlowLayoutPanel();
+            this.chkProto_socks = new System.Windows.Forms.CheckBox();
+            this.chkProto_socks2 = new System.Windows.Forms.CheckBox();
+            this.chkProto_http = new System.Windows.Forms.CheckBox();
+            this.chkProto_http2 = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.txtPort = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -68,9 +76,9 @@
             resources.ApplyResources(this.panel3, "panel3");
             this.panel3.Controls.Add(this.linkRuleobjectDoc);
             this.panel3.Controls.Add(this.chkEnabled);
-            this.panel3.Controls.Add(this.clbInboundTag);
+            this.panel3.Controls.Add(this.flpInboundTag);
             this.panel3.Controls.Add(this.label2);
-            this.panel3.Controls.Add(this.clbProtocol);
+            this.panel3.Controls.Add(this.flpProtocol);
             this.panel3.Controls.Add(this.label3);
             this.panel3.Controls.Add(this.txtPort);
             this.panel3.Controls.Add(this.label1);
@@ -91,36 +99,87 @@
             resources.ApplyResources(this.chkEnabled, "chkEnabled");
             this.chkEnabled.Name = "chkEnabled";
             this.chkEnabled.UseVisualStyleBackColor = true;
-            // 
-            // clbInboundTag
-            // 
-            resources.ApplyResources(this.clbInboundTag, "clbInboundTag");
-            this.clbInboundTag.CheckOnClick = true;
-            this.clbInboundTag.FormattingEnabled = true;
-            this.clbInboundTag.Items.AddRange(new object[] {
-            resources.GetString("clbInboundTag.Items"),
-            resources.GetString("clbInboundTag.Items1"),
-            resources.GetString("clbInboundTag.Items2"),
-            resources.GetString("clbInboundTag.Items3")});
-            this.clbInboundTag.MultiColumn = true;
-            this.clbInboundTag.Name = "clbInboundTag";
+            //
+            // flpInboundTag
+            //
+            resources.ApplyResources(this.flpInboundTag, "clbInboundTag");
+            this.flpInboundTag.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flpInboundTag.AutoSize = true;
+            this.flpInboundTag.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.flpInboundTag.WrapContents = false;
+            this.flpInboundTag.Controls.Add(this.chkTag_socks);
+            this.flpInboundTag.Controls.Add(this.chkTag_socks2);
+            this.flpInboundTag.Controls.Add(this.chkTag_http);
+            this.flpInboundTag.Controls.Add(this.chkTag_http2);
+            this.flpInboundTag.Name = "flpInboundTag";
+            //
+            // chkTag_socks
+            //
+            this.chkTag_socks.AutoSize = true;
+            this.chkTag_socks.Text = "socks";
+            this.chkTag_socks.Name = "chkTag_socks";
+            //
+            // chkTag_socks2
+            //
+            this.chkTag_socks2.AutoSize = true;
+            this.chkTag_socks2.Text = "socks2";
+            this.chkTag_socks2.Name = "chkTag_socks2";
+            //
+            // chkTag_http
+            //
+            this.chkTag_http.AutoSize = true;
+            this.chkTag_http.Text = "http";
+            this.chkTag_http.Name = "chkTag_http";
+            //
+            // chkTag_http2
+            //
+            this.chkTag_http2.AutoSize = true;
+            this.chkTag_http2.Text = "http2";
+            this.chkTag_http2.Name = "chkTag_http2";
             // 
             // label2
             // 
             resources.ApplyResources(this.label2, "label2");
             this.label2.Name = "label2";
-            // 
-            // clbProtocol
-            // 
-            resources.ApplyResources(this.clbProtocol, "clbProtocol");
-            this.clbProtocol.CheckOnClick = true;
-            this.clbProtocol.FormattingEnabled = true;
-            this.clbProtocol.Items.AddRange(new object[] {
-            resources.GetString("clbProtocol.Items"),
-            resources.GetString("clbProtocol.Items1"),
-            resources.GetString("clbProtocol.Items2")});
-            this.clbProtocol.MultiColumn = true;
-            this.clbProtocol.Name = "clbProtocol";
+            //
+            // flpProtocol
+            //
+            resources.ApplyResources(this.flpProtocol, "clbProtocol");
+            this.flpProtocol.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flpProtocol.AutoSize = true;
+            this.flpProtocol.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.flpProtocol.WrapContents = false;
+            this.flpProtocol.Controls.Add(this.chkProto_socks);
+            this.flpProtocol.Controls.Add(this.chkProto_socks2);
+            this.flpProtocol.Controls.Add(this.chkProto_http);
+            this.flpProtocol.Controls.Add(this.chkProto_http2);
+            this.flpProtocol.Name = "flpProtocol";
+            //
+            // chkProto_socks
+            //
+            this.chkProto_socks.AutoSize = true;
+            this.chkProto_socks.Text = "socks";
+            this.chkProto_socks.Name = "chkProto_socks";
+            //
+            // chkProto_socks2
+            //
+            this.chkProto_socks2.AutoSize = true;
+            this.chkProto_socks2.Text = "socks2";
+            this.chkProto_socks2.Name = "chkProto_socks2";
+            //
+            // chkProto_http
+            //
+            this.chkProto_http.AutoSize = true;
+            this.chkProto_http.Text = "http";
+            this.chkProto_http.Name = "chkProto_http";
+            //
+            // chkProto_http2
+            //
+            this.chkProto_http2.AutoSize = true;
+            this.chkProto_http2.Text = "http2";
+            this.chkProto_http2.Name = "chkProto_http2";
             // 
             // label3
             // 
@@ -140,6 +199,8 @@
             // labRoutingTips
             // 
             resources.ApplyResources(this.labRoutingTips, "labRoutingTips");
+            this.labRoutingTips.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.labRoutingTips.ForeColor = System.Drawing.Color.Brown;
             this.labRoutingTips.Name = "labRoutingTips";
             // 
@@ -261,8 +322,16 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtPort;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.CheckedListBox clbProtocol;
-        private System.Windows.Forms.CheckedListBox clbInboundTag;
+        private System.Windows.Forms.FlowLayoutPanel flpProtocol;
+        private System.Windows.Forms.CheckBox chkProto_socks;
+        private System.Windows.Forms.CheckBox chkProto_socks2;
+        private System.Windows.Forms.CheckBox chkProto_http;
+        private System.Windows.Forms.CheckBox chkProto_http2;
+        private System.Windows.Forms.FlowLayoutPanel flpInboundTag;
+        private System.Windows.Forms.CheckBox chkTag_socks;
+        private System.Windows.Forms.CheckBox chkTag_socks2;
+        private System.Windows.Forms.CheckBox chkTag_http;
+        private System.Windows.Forms.CheckBox chkTag_http2;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox chkEnabled;
         private System.Windows.Forms.CheckBox chkAutoSort;

@@ -40,13 +40,10 @@ namespace v2rayN.Forms
                 rulesItem.port = txtPort.Text.TrimEx();
 
                 var inboundTag = new List<String>();
-                for (int i = 0; i < clbInboundTag.Items.Count; i++)
-                {
-                    if (clbInboundTag.GetItemChecked(i))
-                    {
-                        inboundTag.Add(clbInboundTag.Items[i].ToString());
-                    }
-                }
+                if (chkTag_socks.Checked) inboundTag.Add("socks");
+                if (chkTag_socks2.Checked) inboundTag.Add("socks2");
+                if (chkTag_http.Checked) inboundTag.Add("http");
+                if (chkTag_http2.Checked) inboundTag.Add("http2");
                 rulesItem.inboundTag = inboundTag;
                 rulesItem.outboundTag = cmbOutboundTag.Text;
                 if (chkAutoSort.Checked)
@@ -61,13 +58,10 @@ namespace v2rayN.Forms
                 }
 
                 var protocol = new List<string>();
-                for (int i = 0; i < clbProtocol.Items.Count; i++)
-                {
-                    if (clbProtocol.GetItemChecked(i))
-                    {
-                        protocol.Add(clbProtocol.Items[i].ToString());
-                    }
-                }
+                if (chkProto_socks.Checked) protocol.Add("socks");
+                if (chkProto_socks2.Checked) protocol.Add("socks2");
+                if (chkProto_http.Checked) protocol.Add("http");
+                if (chkProto_http2.Checked) protocol.Add("http2");
                 rulesItem.protocol = protocol;
                 rulesItem.enabled = chkEnabled.Checked;
             }
@@ -83,24 +77,18 @@ namespace v2rayN.Forms
 
                 if (rulesItem.inboundTag != null)
                 {
-                    for (int i = 0; i < clbInboundTag.Items.Count; i++)
-                    {
-                        if (rulesItem.inboundTag.Contains(clbInboundTag.Items[i].ToString()))
-                        {
-                            clbInboundTag.SetItemChecked(i, true);
-                        }
-                    }
+                    chkTag_socks.Checked = rulesItem.inboundTag.Contains("socks");
+                    chkTag_socks2.Checked = rulesItem.inboundTag.Contains("socks2");
+                    chkTag_http.Checked = rulesItem.inboundTag.Contains("http");
+                    chkTag_http2.Checked = rulesItem.inboundTag.Contains("http2");
                 }
 
                 if (rulesItem.protocol != null)
                 {
-                    for (int i = 0; i < clbProtocol.Items.Count; i++)
-                    {
-                        if (rulesItem.protocol.Contains(clbProtocol.Items[i].ToString()))
-                        {
-                            clbProtocol.SetItemChecked(i, true);
-                        }
-                    }
+                    chkProto_socks.Checked = rulesItem.protocol.Contains("socks");
+                    chkProto_socks2.Checked = rulesItem.protocol.Contains("socks2");
+                    chkProto_http.Checked = rulesItem.protocol.Contains("http");
+                    chkProto_http2.Checked = rulesItem.protocol.Contains("http2");
                 }
                 chkEnabled.Checked = rulesItem.enabled;
             }

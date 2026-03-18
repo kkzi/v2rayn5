@@ -1148,6 +1148,9 @@ namespace v2rayN
         [DllImport("user32.dll")]
         public static extern bool IsWindow(IntPtr hwnd);
 
+        [DllImport("user32.dll")]
+        public static extern bool SetForegroundWindow(IntPtr hwnd);
+
 
         #endregion
     }

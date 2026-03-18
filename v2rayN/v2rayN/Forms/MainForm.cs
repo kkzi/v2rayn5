@@ -441,6 +441,21 @@ namespace v2rayN.Forms
             return result;
         }
 
+        private void RequestExit()
+        {
+            if (ConfirmExitClose() == DialogResult.Yes)
+            {
+                _allowExitOnClose = true;
+                Close();
+            }
+        }
+
+        private void RequestHideToTray()
+        {
+            StorageUI();
+            HideForm();
+        }
+
         private sealed class ExitConfirmDialog : Form
         {
             private const int ButtonHeight = 32;
@@ -654,11 +669,7 @@ namespace v2rayN.Forms
             // Alt+X: confirm then exit.
             if (e.Alt && !e.Control && !e.Shift && e.KeyCode == Keys.X)
             {
-                if (ConfirmExitClose() == DialogResult.Yes)
-                {
-                    _allowExitOnClose = true;
-                    Close();
-                }
+                RequestExit();
                 e.Handled = true;
                 e.SuppressKeyPress = true;
                 return true;
@@ -1081,9 +1092,8 @@ namespace v2rayN.Forms
                     }
                     else
                     {
-                        StorageUI();
                         e.Cancel = true;
-                        HideForm();
+                        RequestHideToTray();
                     }
                     break;
                 case CloseReason.ApplicationExitCall:
@@ -2281,11 +2291,7 @@ namespace v2rayN.Forms
 
         private void menuExit_Click(object sender, EventArgs e)
         {
-            if (ConfirmExitClose() == DialogResult.Yes)
-            {
-                _allowExitOnClose = true;
-                Close();
-            }
+            BeginInvoke(new Action(RequestExit));
         }
 
 

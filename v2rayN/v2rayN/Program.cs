@@ -11,6 +11,8 @@ namespace v2rayN
 {
     static class Program
     {
+        private const int SW_RESTORE = 9;
+
         /// <summary>
         /// 应用程序的主入口点。
         /// </summary>
@@ -52,10 +54,8 @@ namespace v2rayN
                     if (llong > 0)
                     {
                         var hwnd = (IntPtr)llong;
-                        if (Utils.IsWindow(hwnd))
+                        if (TryActivateExistingInstance(hwnd))
                         {
-                            Utils.ShowWindow(hwnd, 4);
-                            Utils.SwitchToThisWindow(hwnd, true);
                             return;
                         }
                     }
@@ -66,16 +66,34 @@ namespace v2rayN
                     if (existing != null)
                     {
                         var hwnd2 = existing.MainWindowHandle;
-                        if (hwnd2 != IntPtr.Zero && Utils.IsWindow(hwnd2))
+                        if (TryActivateExistingInstance(hwnd2))
                         {
-                            Utils.ShowWindow(hwnd2, 4);
-                            Utils.SwitchToThisWindow(hwnd2, true);
                             return;
                         }
                     }
                 }
                 catch { }
                 UI.ShowWarning($"v2rayN is already running(v2rayN已经运行)");
+            }
+        }
+
+        private static bool TryActivateExistingInstance(IntPtr hwnd)
+        {
+            try
+            {
+                if (hwnd == IntPtr.Zero || !Utils.IsWindow(hwnd))
+                {
+                    return false;
+                }
+
+                Utils.ShowWindow(hwnd, SW_RESTORE);
+                Utils.SetForegroundWindow(hwnd);
+                Utils.SwitchToThisWindow(hwnd, true);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
