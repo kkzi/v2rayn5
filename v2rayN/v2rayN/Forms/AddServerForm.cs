@@ -189,24 +189,24 @@ namespace v2rayN.Forms
 
             if (Utils.IsNullOrEmpty(address))
             {
-                UI.Show(ResUI.FillServerAddress);
+                ShowOwnedInfoPrompt(ResUI.FillServerAddress);
                 return;
             }
             if (Utils.IsNullOrEmpty(port) || !Utils.IsNumberic(port))
             {
-                UI.Show(ResUI.FillCorrectServerPort);
+                ShowOwnedInfoPrompt(ResUI.FillCorrectServerPort);
                 return;
             }
             if (eConfigType == EConfigType.Shadowsocks)
             {
                 if (Utils.IsNullOrEmpty(id))
                 {
-                    UI.Show(ResUI.FillPassword);
+                    ShowOwnedInfoPrompt(ResUI.FillPassword);
                     return;
                 }
                 if (Utils.IsNullOrEmpty(security))
                 {
-                    UI.Show(ResUI.PleaseSelectEncryption);
+                    ShowOwnedInfoPrompt(ResUI.PleaseSelectEncryption);
                     return;
                 }
             }
@@ -214,7 +214,7 @@ namespace v2rayN.Forms
             {
                 if (Utils.IsNullOrEmpty(id))
                 {
-                    UI.Show(ResUI.FillUUID);
+                    ShowOwnedInfoPrompt(ResUI.FillUUID);
                     return;
                 }
             }

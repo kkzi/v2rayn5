@@ -1,42 +1,43 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using v2rayN.Mode;
 using v2rayN.Resx;
-using System.Linq;
+using v2rayN.Tool;
 
 namespace v2rayN.Forms
 {
     public partial class BaseForm : Form
     {
         protected static Config config;
-        private static readonly Lazy<Font> appFont = new Lazy<Font>(CreateAppFont);
         private const int DialogBottomButtonHeight = 32;
+        private const string PromptDialogTitle = "v2rayN";
         private bool bottomButtonsNormalized_;
+        private bool applyingManualDpiFonts_;
 
         public BaseForm()
         {
             InitializeComponent();
 
-            // Set app-wide UI font (one place only).
-            // Do it after InitializeComponent and switch autoscaling away from Font, otherwise many forms will
-            // scale their size/padding unexpectedly.
-            AutoScaleMode = AutoScaleMode.Dpi;
-            Font = appFont.Value;
+            Font = HighDpiHelper.NormalizeFontToPoints(Font);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             LoadCustomIcon();
+            DpiChanged += BaseForm_DpiChanged;
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+            ApplyManualDpiFonts();
             NormalizeDialogBottomButtonsOnce();
         }
 
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
+            ApplyManualDpiFonts();
             NormalizeDialogBottomButtonsOnce();
         }
 
@@ -116,6 +117,71 @@ namespace v2rayN.Forms
             catch { }
         }
 
+        private void BaseForm_DpiChanged(object sender, DpiChangedEventArgs e)
+        {
+            ApplyManualDpiFonts();
+        }
+
+        protected void ApplyManualDpiFonts()
+        {
+            try
+            {
+                if (applyingManualDpiFonts_)
+                {
+                    return;
+                }
+
+                applyingManualDpiFonts_ = true;
+                var controls = EnumerateSelfAndDescendants(this).ToList();
+
+                foreach (Control control in controls)
+                {
+                    if (!ShouldApplyManualDpiFont(control) || control.Font == null)
+                    {
+                        continue;
+                    }
+
+                    Font normalizedFont = HighDpiHelper.NormalizeFontToPoints(control.Font);
+                    if (HighDpiHelper.AreFontsEquivalent(control.Font, normalizedFont))
+                    {
+                        normalizedFont.Dispose();
+                        continue;
+                    }
+
+                    control.Font = normalizedFont;
+                }
+
+                foreach (Control control in controls.OfType<ListView>())
+                {
+                    HighDpiHelper.EnableListViewDpiScaling((ListView)control);
+                }
+
+                PerformLayout();
+            }
+            catch { }
+            finally
+            {
+                applyingManualDpiFonts_ = false;
+            }
+        }
+
+        private static bool ShouldApplyManualDpiFont(Control control)
+        {
+            return control is not ToolStrip
+                   && control is not MenuStrip
+                   && control is not StatusStrip;
+        }
+
+        private static IEnumerable<Control> EnumerateSelfAndDescendants(Control root)
+        {
+            yield return root;
+
+            foreach (var control in EnumerateDescendants(root))
+            {
+                yield return control;
+            }
+        }
+
         private static IEnumerable<Control> EnumerateDescendants(Control root)
         {
             if (root == null)
@@ -134,17 +200,81 @@ namespace v2rayN.Forms
             }
         }
 
-        private static Font CreateAppFont()
-        {
-            // Prefer Microsoft YaHei 9pt. Fall back to default if unavailable.
-            try { return new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point); } catch { }
-            try { return new Font("Microsoft YaHei", 9F, FontStyle.Regular, GraphicsUnit.Point); } catch { }
-            return Control.DefaultFont;
-        }
-
         protected void CloseCancel()
         {
             DialogResult = DialogResult.Cancel;
+        }
+
+        private void ShowOwnedSingleButtonPrompt(string message, Action<string> fallback)
+        {
+            try
+            {
+                using (var dialog = new OwnedSingleButtonPromptDialog(PromptDialogTitle, message, Font, Icon))
+                {
+                    dialog.ShowDialog(this);
+                }
+            }
+            catch
+            {
+                fallback?.Invoke(message);
+            }
+        }
+
+        protected virtual void ShowOwnedInfoPrompt(string message)
+        {
+            ShowOwnedSingleButtonPrompt(message, UI.Show);
+        }
+
+        protected bool ShowOwnedInfoPromptSafe(string message)
+        {
+            try
+            {
+                if (IsDisposed)
+                {
+                    return false;
+                }
+
+                if (InvokeRequired)
+                {
+                    if (!IsHandleCreated)
+                    {
+                        return false;
+                    }
+
+                    BeginInvoke((MethodInvoker)delegate
+                    {
+                        ShowOwnedInfoPrompt(message);
+                    });
+                    return true;
+                }
+
+                ShowOwnedInfoPrompt(message);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        protected virtual void ShowOwnedWarningPrompt(string message)
+        {
+            ShowOwnedSingleButtonPrompt(message, UI.ShowWarning);
+        }
+
+        protected virtual DialogResult ShowOwnedYesNoPrompt(string message)
+        {
+            try
+            {
+                using (var dialog = new OwnedYesNoPromptDialog(PromptDialogTitle, message, Font, Icon))
+                {
+                    return dialog.ShowDialog(this);
+                }
+            }
+            catch
+            {
+                return UI.ShowYesNo(message);
+            }
         }
 
         protected void HandleResult(int ret)
@@ -155,7 +285,7 @@ namespace v2rayN.Forms
             }
             else
             {
-                UI.ShowWarning(ResUI.OperationFailed);
+                ShowOwnedWarningPrompt(ResUI.OperationFailed);
             }
         }
 
@@ -182,7 +312,7 @@ namespace v2rayN.Forms
             {
                 if (lv.SelectedIndices.Count <= 0)
                 {
-                    UI.Show(emptyMessage ?? ResUI.PleaseSelectRules);
+                    ShowOwnedInfoPrompt(emptyMessage ?? ResUI.PleaseSelectRules);
                     return index;
                 }
 

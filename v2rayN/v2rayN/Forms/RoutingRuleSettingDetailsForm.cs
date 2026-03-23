@@ -116,7 +116,7 @@ namespace v2rayN.Forms
 
             if (!hasRule)
             {
-                UI.ShowWarning(string.Format(ResUI.RoutingRuleDetailRequiredTips, "Port/Protocol/Domain/IP"));
+                ShowOwnedWarningPrompt(string.Format(ResUI.RoutingRuleDetailRequiredTips, "Port/Protocol/Domain/IP"));
                 return;
             }
 

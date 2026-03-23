@@ -33,6 +33,10 @@ namespace v2rayN.Forms
         private int logPanelSplitterDistance;
         private bool _allowExitOnClose;
         private readonly List<Image> _ownedToolbarImages = new List<Image>();
+        private readonly Dictionary<ToolStripItem, Image> _toolbarSourceImages = new Dictionary<ToolStripItem, Image>();
+
+        private static readonly Size MainWindowMinimumLogicalSize = new Size(1000, 640);
+        private static readonly Size ToolbarImageLogicalSize = new Size(16, 16);
 
         private const int WM_SYSCOMMAND = 0x0112;
         private const int SC_CLOSE = 0xF060;
@@ -51,15 +55,15 @@ namespace v2rayN.Forms
             StartPosition = FormStartPosition.CenterScreen;
             // Override BaseForm's FixedSingle to allow resizing the main window.
             FormBorderStyle = FormBorderStyle.Sizable;
-            MinimumSize = new Size(1000, 640);
+            MinimumSize = MainWindowMinimumLogicalSize;
             mainMsgControl.SysProxySelected += mainMsgControl_SysProxySelected;
             mainMsgControl.RoutingSelected += MainMsgControl_RoutingSelected;
             mainMsgControl.ToggleLogRequested += MainMsgControl_ToggleLogRequested;
             mainMsgControl.OptionSettingRequested += (s, e) => OpenOptionSetting();
+            DpiChanged += MainForm_DpiChanged;
             KeyPreview = true;
 
             ApplyCompactToolStripStyle(tsMain);
-            tsMain.ImageScalingSize = new Size(16, 16);
             tsMain.Padding = Padding.Empty;
             foreach (ToolStripItem item in tsMain.Items)
             {
@@ -79,7 +83,7 @@ namespace v2rayN.Forms
 
                 // Resource icons are mostly 32x32. ToolStrip will downscale to 16x16 with suboptimal quality.
                 // Pre-scale once using high-quality interpolation and disable further scaling to avoid blur.
-                NormalizeToolStripItemImage(item, tsMain.ImageScalingSize);
+                NormalizeToolStripItemImage(item, ToolbarImageLogicalSize);
             }
 
             Text = Utils.GetVersion();
@@ -99,6 +103,7 @@ namespace v2rayN.Forms
                         img?.Dispose();
                     }
                     _ownedToolbarImages.Clear();
+                    _toolbarSourceImages.Clear();
                 }
                 catch { }
             };
@@ -116,24 +121,56 @@ namespace v2rayN.Forms
                     return;
                 }
 
-                // Only resample when needed.
-                if (item.Image.Width == targetSize.Width && item.Image.Height == targetSize.Height)
+                if (!_toolbarSourceImages.TryGetValue(item, out Image sourceImage) || sourceImage == null)
                 {
+                    sourceImage = item.Image;
+                    _toolbarSourceImages[item] = sourceImage;
+                }
+
+                // Only resample when needed.
+                if (sourceImage.Width == targetSize.Width && sourceImage.Height == targetSize.Height)
+                {
+                    ReplaceOwnedToolStripImage(item, sourceImage, false);
                     item.ImageScaling = ToolStripItemImageScaling.None;
                     return;
                 }
 
-                var scaled = CreateHighQualityResizedBitmap(item.Image, targetSize);
+                var scaled = CreateHighQualityResizedBitmap(sourceImage, targetSize);
                 if (scaled == null)
                 {
                     return;
                 }
 
-                item.Image = scaled;
+                ReplaceOwnedToolStripImage(item, scaled, true);
                 item.ImageScaling = ToolStripItemImageScaling.None;
-                _ownedToolbarImages.Add(scaled);
             }
             catch { }
+        }
+
+        private void ReplaceOwnedToolStripImage(ToolStripItem item, Image image, bool ownsImage)
+        {
+            if (item == null || image == null)
+            {
+                return;
+            }
+
+            var currentImage = item.Image;
+            if (ReferenceEquals(currentImage, image))
+            {
+                return;
+            }
+
+            item.Image = image;
+
+            if (currentImage != null && _ownedToolbarImages.Remove(currentImage))
+            {
+                currentImage.Dispose();
+            }
+
+            if (ownsImage)
+            {
+                _ownedToolbarImages.Add(image);
+            }
         }
 
         private static Bitmap CreateHighQualityResizedBitmap(Image src, Size targetSize)
@@ -207,6 +244,30 @@ namespace v2rayN.Forms
             }
         }
 
+        private void MainForm_DpiChanged(object sender, DpiChangedEventArgs e)
+        {
+            ApplyHighDpiLayout();
+        }
+
+        private void ApplyHighDpiLayout()
+        {
+            int deviceDpi = HighDpiHelper.GetEffectiveDpi(this);
+            MinimumSize = HighDpiHelper.ScaleLogicalSize(MainWindowMinimumLogicalSize, deviceDpi);
+            ApplyToolStripImageScaling(deviceDpi);
+            mainMsgControl.ApplyHighDpiLayout();
+        }
+
+        private void ApplyToolStripImageScaling(int deviceDpi)
+        {
+            Size imageSize = HighDpiHelper.ScaleLogicalSize(ToolbarImageLogicalSize, deviceDpi);
+            tsMain.ImageScalingSize = imageSize;
+
+            foreach (ToolStripItem item in tsMain.Items)
+            {
+                NormalizeToolStripItemImage(item, imageSize);
+            }
+        }
+
         private void MainForm_Load(object sender, EventArgs e)
         {
             if (ConfigHandler.LoadConfig(ref config) != 0)
@@ -216,21 +277,13 @@ namespace v2rayN.Forms
                 return;
             }
 
+            ApplyHighDpiLayout();
+
             // Apply window size before the form is first shown.
             // Use last saved size from guiNConfig.json, clamped to MinimumSize, to avoid visible resize "jump".
             RestoreWindowBounds();
 
-            // Restore main servers listview column widths to defaults (temporarily).
-            // This clears persisted column widths to avoid unexpected layout issues after font changes.
-            try
-            {
-                if (config?.uiItem?.mainLvColWidth != null && config.uiItem.mainLvColWidth.Count > 0)
-                {
-                    config.uiItem.mainLvColWidth.Clear();
-                    ConfigHandler.SaveConfig(ref config, false);
-                }
-            }
-            catch { }
+            PreservePersistedMainLvColumnWidthsOnLoad();
 
             ConfigHandler.InitBuiltinRouting(ref config);
             MainFormHandler.Instance.BackupGuiNConfig(config, true);
@@ -241,6 +294,12 @@ namespace v2rayN.Forms
             {
                 statistics = new StatisticsHandler(config, UpdateStatisticsHandler);
             }
+        }
+
+        protected virtual void PreservePersistedMainLvColumnWidthsOnLoad()
+        {
+            // Keep the user's saved column widths. High DPI handling now normalizes fonts and layout without
+            // requiring destructive config resets on every startup.
         }
 
         private void MainForm_VisibleChanged(object sender, EventArgs e)
@@ -291,7 +350,7 @@ namespace v2rayN.Forms
 
             if (!Utils.CheckForDotNetVersion())
             {
-                UI.ShowWarning(ResUI.NetFrameworkRequirementsTip);
+                ShowOwnedWarningPrompt(ResUI.NetFrameworkRequirementsTip);
                 AppendText(false, ResUI.NetFrameworkRequirementsTip);
             }
 
@@ -479,8 +538,7 @@ namespace v2rayN.Forms
                 MinimizeBox = false;
                 MaximizeBox = false;
                 ShowInTaskbar = false;
-                // Keep an exact window size (no autoscale-driven resizing).
-                AutoScaleMode = AutoScaleMode.None;
+                AutoScaleMode = AutoScaleMode.Dpi;
                 Font = ownerFont ?? Font;
                 if (ownerIcon != null)
                 {
@@ -529,7 +587,8 @@ namespace v2rayN.Forms
                 Controls.Add(btnYes_);
                 Controls.Add(btnNo_);
 
-                ApplyFixedLayout();
+                DpiChanged += ExitConfirmDialog_DpiChanged;
+                ApplyScaledLayout();
             }
 
             protected override void OnShown(EventArgs e)
@@ -538,38 +597,73 @@ namespace v2rayN.Forms
                 try
                 {
                     // Re-apply after handle creation to make the size/positions deterministic.
-                    Size = new Size(DialogWidth, DialogHeight);
-                    MinimumSize = Size;
-                    MaximumSize = Size;
-                    ApplyFixedLayout();
+                    ApplyScaledLayout();
                 }
                 catch { }
             }
 
-            private void ApplyFixedLayout()
+            private void ExitConfirmDialog_DpiChanged(object sender, DpiChangedEventArgs e)
+            {
+                ApplyScaledLayout();
+            }
+
+            private void ApplyScaledLayout()
             {
                 try
                 {
-                    messageBox_.Left = SidePadding;
-                    messageBox_.Top = TopPadding;
-                    messageBox_.Width = Math.Max(0, ClientSize.Width - SidePadding * 2);
+                    int deviceDpi = HighDpiHelper.GetControlDeviceDpi(this);
+                    int dialogWidth = HighDpiHelper.ScaleLogicalValue(DialogWidth, deviceDpi);
+                    int dialogHeight = HighDpiHelper.ScaleLogicalValue(DialogHeight, deviceDpi);
+                    int buttonWidth = HighDpiHelper.ScaleLogicalValue(ButtonWidth, deviceDpi);
+                    int buttonHeight = HighDpiHelper.ScaleLogicalValue(ButtonHeight, deviceDpi);
+                    int buttonSpacing = HighDpiHelper.ScaleLogicalValue(ButtonSpacing, deviceDpi);
+                    int sidePadding = HighDpiHelper.ScaleLogicalValue(SidePadding, deviceDpi);
+                    int topPadding = HighDpiHelper.ScaleLogicalValue(TopPadding, deviceDpi);
+                    int bottomPadding = HighDpiHelper.ScaleLogicalValue(BottomPadding, deviceDpi);
+                    int messageBottomSpacing = HighDpiHelper.ScaleLogicalValue(6, deviceDpi);
 
-                    int buttonsTotalWidth = ButtonWidth * 2 + ButtonSpacing;
+                    Size = new Size(dialogWidth, dialogHeight);
+                    MinimumSize = Size;
+                    MaximumSize = Size;
+
+                    btnYes_.Size = new Size(buttonWidth, buttonHeight);
+                    btnNo_.Size = new Size(buttonWidth, buttonHeight);
+
+                    messageBox_.Left = sidePadding;
+                    messageBox_.Top = topPadding;
+                    messageBox_.Width = Math.Max(0, ClientSize.Width - sidePadding * 2);
+
+                    int buttonsTotalWidth = buttonWidth * 2 + buttonSpacing;
                     int buttonsLeft = Math.Max(0, (ClientSize.Width - buttonsTotalWidth) / 2);
-                    int buttonsTop = Math.Max(0, ClientSize.Height - BottomPadding - ButtonHeight);
+                    int buttonsTop = Math.Max(0, ClientSize.Height - bottomPadding - buttonHeight);
 
                     btnYes_.Left = buttonsLeft;
                     btnYes_.Top = buttonsTop;
 
-                    btnNo_.Left = btnYes_.Right + ButtonSpacing;
+                    btnNo_.Left = btnYes_.Right + buttonSpacing;
                     btnNo_.Top = buttonsTop;
 
-                    messageBox_.Height = Math.Max(0, btnYes_.Top - TopPadding - 6);
+                    messageBox_.Height = Math.Max(0, btnYes_.Top - topPadding - messageBottomSpacing);
                 }
                 catch { }
             }
 
             // Button texts come from ResUI (DialogYes/DialogNo).
+        }
+
+        protected override DialogResult ShowOwnedYesNoPrompt(string message)
+        {
+            try
+            {
+                using (var dialog = new ExitConfirmDialog("v2rayN", message, Font, Icon))
+                {
+                    return dialog.ShowDialog(this);
+                }
+            }
+            catch
+            {
+                return UI.ShowYesNo(message);
+            }
         }
 
         private static bool IsAltKeyDown()
@@ -596,10 +690,10 @@ namespace v2rayN.Forms
             switch (e.KeyCode)
             {
                 case Keys.P:
-                    menuPingServer_Click(null, null);
+                    ExecutePingShortcut();
                     return true;
                 case Keys.T:
-                    menuTcpingServer_Click(null, null);
+                    ExecuteTcpingShortcut();
                     return true;
                 case Keys.R:
                     menuRealPingServer_Click(null, null);
@@ -614,6 +708,43 @@ namespace v2rayN.Forms
             if (e == null)
             {
                 return false;
+            }
+
+            if (e.Control && !e.Shift && !e.Alt)
+            {
+                if (IsEditableControlFocused())
+                {
+                    return false;
+                }
+
+                switch (e.KeyCode)
+                {
+                    case Keys.A:
+                        ExecuteSelectAllServersShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return true;
+                    case Keys.C:
+                        ExecuteExportShareUrlShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return true;
+                    case Keys.S:
+                        ExecuteScanScreenShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return true;
+                    case Keys.T:
+                        ExecuteSpeedTestShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return true;
+                    case Keys.E:
+                        ExecuteSortServerResultShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return true;
+                }
             }
 
             // Ctrl+V: only intercept when focused control is not editable (per requirement).
@@ -750,12 +881,12 @@ namespace v2rayN.Forms
                     InitSubView(_subId);
                     SelectUnsubscribedTab();
                     RefreshServers();
-                    UI.Show(string.Format(ResUI.SuccessfullyImportedServerViaClipboard, ret));
+                    ShowOwnedInfoPrompt(string.Format(ResUI.SuccessfullyImportedServerViaClipboard, ret));
                     return true;
                 }
 
                 // Keep this message consistent with ShareHandler failure semantics.
-                UI.ShowWarning(ResUI.NonvmessOrssProtocol);
+                ShowOwnedWarningPrompt(ResUI.NonvmessOrssProtocol);
                 return true;
             }
             catch { }
@@ -1073,7 +1204,7 @@ namespace v2rayN.Forms
             else
             {
                 logPanelSplitterDistance = scBig.SplitterDistance;
-                int statusBarHeight = 22;
+                int statusBarHeight = Math.Max(1, mainMsgControl.GetStatusStripHeight());
                 scBig.SplitterDistance = scBig.Height - statusBarHeight;
                 _isLogHidden = true;
             }
@@ -1386,7 +1517,7 @@ namespace v2rayN.Forms
         /// </summary>
         private void InitServersView()
         {
-            lvServers.Font = new System.Drawing.Font(lvServers.Font.FontFamily, 12f, lvServers.Font.Style, System.Drawing.GraphicsUnit.Pixel);
+            lvServers.Font = HighDpiHelper.NormalizeFontToPoints(lvServers.Font);
 
             lvServers.BeginUpdate();
             lvServers.Items.Clear();
@@ -1816,11 +1947,15 @@ namespace v2rayN.Forms
                 switch (e.KeyCode)
                 {
                     case Keys.A:
-                        menuSelectAll_Click(null, null);
-                        break;
+                        ExecuteSelectAllServersShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return;
                     case Keys.C:
-                        menuExport2ShareUrl_Click(null, null);
-                        break;
+                        ExecuteExportShareUrlShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return;
                     case Keys.V:
                         if (TryHandleClipboardImport())
                         {
@@ -1829,28 +1964,28 @@ namespace v2rayN.Forms
                             return;
                         }
                         break;
-                    case Keys.P:
-                        // moved to Alt+P
-                        break;
-                    case Keys.O:
-                        // moved to Alt+T
-                        break;
                     case Keys.R:
                         // Reserved for subscription update on main form (Ctrl+R),
                         // keep list shortcut consistent: do not trigger other actions here.
                         break;
                     case Keys.S:
-                        menuScanScreen_Click(null, null);
-                        break;
+                        ExecuteScanScreenShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return;
                     case Keys.T:
-                        menuSpeedServer_Click(null, null);
-                        break;
+                        ExecuteSpeedTestShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return;
                     case Keys.F:
                         FocusServerFilter();
                         break;
                     case Keys.E:
-                        menuSortServerResult_Click(null, null);
-                        break;
+                        ExecuteSortServerResultShortcut();
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                        return;
                 }
             }
             else
@@ -1897,7 +2032,7 @@ namespace v2rayN.Forms
             {
                 return;
             }
-            if (UI.ShowYesNo(ResUI.RemoveServer) == DialogResult.No)
+            if (ShowOwnedYesNoPrompt(ResUI.RemoveServer) == DialogResult.No)
             {
                 return;
             }
@@ -1914,7 +2049,7 @@ namespace v2rayN.Forms
             int newCount = ConfigHandler.DedupServerList(ref config, ref lstVmess);
             RefreshServers();
             _ = LoadV2ray();
-            UI.Show(string.Format(ResUI.RemoveDuplicateServerResult, oldCount, newCount));
+            ShowOwnedInfoPrompt(string.Format(ResUI.RemoveDuplicateServerResult, oldCount, newCount));
         }
 
         private void menuCopyServer_Click(object sender, EventArgs e)
@@ -1947,6 +2082,41 @@ namespace v2rayN.Forms
         private void menuTcpingServer_Click(object sender, EventArgs e)
         {
             Speedtest(ESpeedActionType.Tcping);
+        }
+
+        protected virtual void ExecutePingShortcut()
+        {
+            menuPingServer_Click(null, null);
+        }
+
+        protected virtual void ExecuteTcpingShortcut()
+        {
+            menuTcpingServer_Click(null, null);
+        }
+
+        protected virtual void ExecuteSelectAllServersShortcut()
+        {
+            menuSelectAll_Click(null, null);
+        }
+
+        protected virtual void ExecuteExportShareUrlShortcut()
+        {
+            menuExport2ShareUrl_Click(null, null);
+        }
+
+        protected virtual void ExecuteScanScreenShortcut()
+        {
+            menuScanScreen_Click(null, null);
+        }
+
+        protected virtual void ExecuteSpeedTestShortcut()
+        {
+            menuSpeedServer_Click(null, null);
+        }
+
+        protected virtual void ExecuteSortServerResultShortcut()
+        {
+            menuSortServerResult_Click(null, null);
         }
 
         private void menuRealPingServer_Click(object sender, EventArgs e)
@@ -2036,7 +2206,7 @@ namespace v2rayN.Forms
             if (urls.Length > 0)
             {
                 Utils.SetClipboardData(Utils.Base64Encode(urls));
-                UI.Show(ResUI.BatchExportSubscriptionSuccessfully);
+                ShowOwnedInfoPrompt(ResUI.BatchExportSubscriptionSuccessfully);
             }
         }
 
@@ -2087,7 +2257,7 @@ namespace v2rayN.Forms
         {
             if (index < 0)
             {
-                UI.Show(ResUI.PleaseSelectServer);
+                ShowOwnedInfoPrompt(ResUI.PleaseSelectServer);
                 return -1;
             }
             if (ConfigHandler.SetDefaultServer(ref config, lstVmess[index]) == 0)
@@ -2130,7 +2300,7 @@ namespace v2rayN.Forms
                 {
                     if (show)
                     {
-                        UI.Show(ResUI.PleaseSelectServer);
+                        ShowOwnedInfoPrompt(ResUI.PleaseSelectServer);
                     }
                     return index;
                 }
@@ -2180,7 +2350,7 @@ namespace v2rayN.Forms
                 InitSubView(_subId);
                 SelectUnsubscribedTab();
                 RefreshServers();
-                UI.Show(string.Format(ResUI.SuccessfullyImportedServerViaClipboard, ret));
+                ShowOwnedInfoPrompt(string.Format(ResUI.SuccessfullyImportedServerViaClipboard, ret));
             }
         }
 
@@ -2202,7 +2372,7 @@ namespace v2rayN.Forms
 
             if (Utils.IsNullOrEmpty(result))
             {
-                UI.ShowWarning(ResUI.NoValidQRcodeFound);
+                ShowOwnedWarningPrompt(ResUI.NoValidQRcodeFound);
             }
             else
             {
@@ -2212,7 +2382,7 @@ namespace v2rayN.Forms
                     InitSubView(_subId);
                     SelectUnsubscribedTab();
                     RefreshServers();
-                    UI.Show(ResUI.SuccessfullyImportedServerViaScan);
+                    ShowOwnedInfoPrompt(ResUI.SuccessfullyImportedServerViaScan);
                 }
             }
         }
@@ -2662,7 +2832,7 @@ namespace v2rayN.Forms
         {
             if (_subId == UnsubscribedTabId)
             {
-                UI.ShowWarning(ResUI.PleaseSwitchToSubscriptionTabToUpdate);
+                ShowOwnedWarningPrompt(ResUI.PleaseSwitchToSubscriptionTabToUpdate);
                 return;
             }
             UpdateSubscriptionProcess(_subId, blProxy);

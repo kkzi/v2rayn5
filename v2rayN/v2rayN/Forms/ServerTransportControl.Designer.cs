@@ -226,7 +226,8 @@
             // ServerTransportControl
             // 
             resources.ApplyResources(this, "$this");
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.Controls.Add(this.gbTransport);
             this.Name = "ServerTransportControl";
             this.Load += new System.EventHandler(this.ServerTransportControl_Load);

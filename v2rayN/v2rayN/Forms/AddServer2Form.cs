@@ -62,12 +62,12 @@ namespace v2rayN.Forms
             string remarks = txtRemarks.Text;
             if (Utils.IsNullOrEmpty(remarks))
             {
-                UI.Show(ResUI.PleaseFillRemarks);
+                ShowOwnedInfoPrompt(ResUI.PleaseFillRemarks);
                 return;
             }
             if (Utils.IsNullOrEmpty(txtAddress.Text))
             {
-                UI.Show(ResUI.FillServerAddressCustom);
+                ShowOwnedInfoPrompt(ResUI.FillServerAddressCustom);
                 return;
             }
             vmessItem.remarks = remarks;
@@ -85,7 +85,7 @@ namespace v2rayN.Forms
 
         private void btnBrowse_Click(object sender, EventArgs e)
         {
-            UI.Show(ResUI.CustomServerTips);
+            ShowOwnedInfoPrompt(ResUI.CustomServerTips);
 
             OpenFileDialog fileDialog = new OpenFileDialog
             {
@@ -108,11 +108,11 @@ namespace v2rayN.Forms
             if (ConfigHandler.AddCustomServer(ref config, vmessItem, false) == 0)
             {
                 BindingServer();
-                UI.Show(ResUI.SuccessfullyImportedCustomServer);
+                ShowOwnedInfoPrompt(ResUI.SuccessfullyImportedCustomServer);
             }
             else
             {
-                UI.ShowWarning(ResUI.FailedImportedCustomServer);
+                ShowOwnedWarningPrompt(ResUI.FailedImportedCustomServer);
             }
         }
 
@@ -121,7 +121,7 @@ namespace v2rayN.Forms
             var address = txtAddress.Text;
             if (Utils.IsNullOrEmpty(address))
             {
-                UI.Show(ResUI.FillServerAddressCustom);
+                ShowOwnedInfoPrompt(ResUI.FillServerAddressCustom);
                 return;
             }
 

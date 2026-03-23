@@ -11,36 +11,80 @@ using System.Windows.Forms;
 using v2rayN.Base;
 using v2rayN.Mode;
 using v2rayN.Resx;
+using v2rayN.Tool;
 
 namespace v2rayN.Forms
 {
     public partial class MainMsgControl : UserControl
     {
+        private const int StatusDropDownMinLogicalWidth = 160;
         private string _msgFilter = string.Empty;
         delegate void AppendTextDelegate(string text);
 
         public MainMsgControl()
         {
             InitializeComponent();
-            // Keep status bar height stable after switching to 10pt font globally.
-            // Otherwise StatusStrip auto-sizes and becomes noticeably taller.
-            try
-            {
-                ssMain.AutoSize = false;
-                ssMain.Height = 20;
-            }
-            catch { }
+            NormalizeStatusStripLayout();
             toolSdbSysProxy.DropDownItemClicked += toolSdbSysProxy_DropDownItemClicked;
             toolSdbRoutingRule.DropDownItemClicked += toolSdbRoutingRule_DropDownItemClicked;
         }
 
         private void MainMsgControl_Load(object sender, EventArgs e)
         {
+            NormalizeStatusStripLayout();
             _msgFilter = Utils.RegReadValue(Global.MyRegPath, Utils.MainMsgFilterKey, "");
             if (!Utils.IsNullOrEmpty(_msgFilter))
             {
                 gbMsgTitle.Text = string.Format(ResUI.MsgInformationTitle, _msgFilter);
             }
+        }
+
+        protected virtual int GetEffectiveDpiForStatusStrip()
+        {
+            return HighDpiHelper.GetEffectiveDpi(this);
+        }
+
+        protected void NormalizeStatusStripLayout()
+        {
+            try
+            {
+                int deviceDpi = GetEffectiveDpiForStatusStrip();
+                int stripHeight = HighDpiHelper.ScaleLogicalValue(22, deviceDpi);
+                int itemHeight = HighDpiHelper.ScaleLogicalValue(17, deviceDpi);
+
+                ssMain.AutoSize = false;
+                ssMain.Height = stripHeight;
+                ssMain.ImageScalingSize = HighDpiHelper.ScaleLogicalSize(new Size(20, 20), deviceDpi);
+
+                NormalizeStatusDropDownButton(toolSdbSysProxy, deviceDpi, itemHeight);
+                NormalizeStatusDropDownButton(toolSdbRoutingRule, deviceDpi, itemHeight);
+            }
+            catch { }
+        }
+
+        private static void NormalizeStatusDropDownButton(ToolStripDropDownButton button, int deviceDpi, int itemHeight)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            int minWidth = HighDpiHelper.ScaleLogicalValue(StatusDropDownMinLogicalWidth, deviceDpi);
+            int preferredWidth = button.GetPreferredSize(Size.Empty).Width;
+            int width = Math.Max(minWidth, preferredWidth);
+
+            button.AutoSize = false;
+            button.Size = new Size(width, itemHeight);
+        }
+
+        public void ApplyHighDpiLayout()
+        {
+            NormalizeStatusStripLayout();
+        }
+
+        public virtual int GetStatusStripHeight()
+        {
+            return ssMain?.Height ?? 0;
         }
 
         #region 提示信息
@@ -196,12 +240,14 @@ namespace v2rayN.Forms
 
             toolSdbSysProxy.Text = selectedText ?? string.Empty;
             toolSdbSysProxy.ToolTipText = toolSdbSysProxy.Text;
+            NormalizeStatusStripLayout();
         }
 
         private void SetRoutingText(string text)
         {
             toolSdbRoutingRule.Text = text ?? string.Empty;
             toolSdbRoutingRule.ToolTipText = toolSdbRoutingRule.Text;
+            NormalizeStatusStripLayout();
         }
 
         private void toolSdbRoutingRule_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)

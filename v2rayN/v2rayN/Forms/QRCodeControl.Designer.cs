@@ -49,7 +49,8 @@
             // QRCodeControl
             // 
             resources.ApplyResources(this, "$this");
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.Controls.Add(this.picQRCode);
             this.Controls.Add(this.txtUrl);
             this.Name = "QRCodeControl";

@@ -181,12 +181,12 @@ namespace v2rayN.Forms
             bool allowLANConn = chkAllowLANConn.Checked;
             if (Utils.IsNullOrEmpty(localPort) || !Utils.IsNumberic(localPort))
             {
-                UI.Show(ResUI.FillLocalListeningPort);
+                ShowOwnedInfoPrompt(ResUI.FillLocalListeningPort);
                 return -1;
             }
             if (Utils.IsNullOrEmpty(protocol))
             {
-                UI.Show(ResUI.PleaseSelectProtocol);
+                ShowOwnedInfoPrompt(ResUI.PleaseSelectProtocol);
                 return -1;
             }
 
@@ -199,7 +199,7 @@ namespace v2rayN.Forms
             {
                 if (remoteDNS.Contains("{") || remoteDNS.Contains("}"))
                 {
-                    UI.Show(ResUI.FillCorrectDNSText);
+                    ShowOwnedInfoPrompt(ResUI.FillCorrectDNSText);
                     return -1;
                 }
             }
@@ -260,7 +260,7 @@ namespace v2rayN.Forms
                 || Utils.IsNullOrEmpty(readBufferSize) || !Utils.IsNumberic(readBufferSize)
                 || Utils.IsNullOrEmpty(writeBufferSize) || !Utils.IsNumberic(writeBufferSize))
             {
-                UI.Show(ResUI.FillKcpParameters);
+                ShowOwnedInfoPrompt(ResUI.FillKcpParameters);
                 return -1;
             }
             config.kcpItem.mtu = Utils.ToInt(mtu);

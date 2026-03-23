@@ -161,7 +161,6 @@ namespace v2rayN.Forms
             int index = GetLvSelectedIndex();
             if (index < 0)
             {
-                UI.Show(ResUI.PleaseSelectRules);
                 return;
             }
             if (ConfigHandler.MoveRoutingRule(ref routingItem, index, eMove) == 0)
@@ -195,7 +194,7 @@ namespace v2rayN.Forms
             {
                 return;
             }
-            if (UI.ShowYesNo(ResUI.RemoveRules) == DialogResult.No)
+            if (ShowOwnedYesNoPrompt(ResUI.RemoveRules) == DialogResult.No)
             {
                 return;
             }
@@ -286,7 +285,7 @@ namespace v2rayN.Forms
             if (AddBatchRoutingRules(ref routingItem, result) == 0)
             {
                 RefreshRoutingsView();
-                UI.Show(ResUI.OperationSuccess);
+                ShowOwnedInfoPrompt(ResUI.OperationSuccess);
             }
         }
 
@@ -296,7 +295,7 @@ namespace v2rayN.Forms
             if (AddBatchRoutingRules(ref routingItem, clipboardData) == 0)
             {
                 RefreshRoutingsView();
-                UI.Show(ResUI.OperationSuccess);
+                ShowOwnedInfoPrompt(ResUI.OperationSuccess);
             }
         }
         private void menuImportRulesFromUrl_Click(object sender, EventArgs e)
@@ -304,28 +303,47 @@ namespace v2rayN.Forms
             var url = txtUrl.Text.Trim();
             if (Utils.IsNullOrEmpty(url))
             {
-                UI.Show(ResUI.MsgNeedUrl);
+                ShowOwnedInfoPrompt(ResUI.MsgNeedUrl);
                 return;
             }
+
+            bool blReplace = GetBatchRoutingReplaceMode();
 
             Task.Run(async () =>
             {
                 DownloadHandle downloadHandle = new DownloadHandle();
                 string result = await downloadHandle.DownloadStringAsync(url, false, "");
-                if (AddBatchRoutingRules(ref routingItem, result) == 0)
+                if (AddBatchRoutingRules(ref routingItem, result, blReplace) == 0)
                 {
-                    RefreshRoutingsView();
-                    UI.Show(ResUI.OperationSuccess);
+                    if (!ShowOwnedInfoPromptSafe(ResUI.OperationSuccess))
+                    {
+                        UI.Show(ResUI.OperationSuccess);
+                    }
+
+                    try
+                    {
+                        BeginInvoke((MethodInvoker)delegate
+                        {
+                            RefreshRoutingsView();
+                        });
+                    }
+                    catch { }
                 }
             });
         }
+
+        protected virtual bool GetBatchRoutingReplaceMode()
+        {
+            return ShowOwnedYesNoPrompt(ResUI.AddBatchRoutingRulesYesNo) == DialogResult.No;
+        }
+
         private int AddBatchRoutingRules(ref RoutingItem routingItem, string clipboardData)
         {
-            bool blReplace = false;
-            if (UI.ShowYesNo(ResUI.AddBatchRoutingRulesYesNo) == DialogResult.No)
-            {
-                blReplace = true;
-            }
+            return AddBatchRoutingRules(ref routingItem, clipboardData, GetBatchRoutingReplaceMode());
+        }
+
+        private int AddBatchRoutingRules(ref RoutingItem routingItem, string clipboardData, bool blReplace)
+        {
             return ConfigHandler.AddBatchRoutingRules(ref routingItem, clipboardData, blReplace);
         }
 

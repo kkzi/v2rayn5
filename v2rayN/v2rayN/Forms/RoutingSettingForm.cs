@@ -231,7 +231,7 @@ namespace v2rayN.Forms
             {
                 return;
             }
-            if (UI.ShowYesNo(ResUI.RemoveRules) == DialogResult.No)
+            if (ShowOwnedYesNoPrompt(ResUI.RemoveRules) == DialogResult.No)
             {
                 return;
             }
@@ -254,7 +254,7 @@ namespace v2rayN.Forms
         {
             if (index < 0)
             {
-                UI.Show(ResUI.PleaseSelectServer);
+                ShowOwnedInfoPrompt(ResUI.PleaseSelectServer);
                 return -1;
             }
             if (ConfigHandler.SetDefaultRouting(ref config, index) == 0)
@@ -273,7 +273,7 @@ namespace v2rayN.Forms
 
             txtBlockDomain.Text = "geosite:category-ads-all";
 
-            UI.Show(ResUI.OperationSuccess);
+            ShowOwnedInfoPrompt(ResUI.OperationSuccess);
         }
 
         private void menuImportAdvancedRules_Click(object sender, EventArgs e)

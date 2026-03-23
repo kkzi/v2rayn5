@@ -1137,9 +1137,6 @@ namespace v2rayN
         }
 
         [DllImport("user32.dll")]
-        public static extern bool SetProcessDPIAware();
-
-        [DllImport("user32.dll")]
         public static extern int ShowWindow(IntPtr hwnd, int nCmdShow);
 
         [DllImport("user32.dll")]
